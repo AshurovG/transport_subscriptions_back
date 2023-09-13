@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}Список заказов{% endblock %}
+
+{% block content %}
+<ul>
+    {% for subscription in data.subscriptions %}
+       {% include 'subscription_element.html' with element=subscription%}
+    {% empty %}
+        <li>Список пуст</li>
+    {% endfor %}
+</ul>
+{% endblock %}
