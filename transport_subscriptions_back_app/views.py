@@ -4,10 +4,8 @@ from datetime import date
 
 # subscriptionsData =
 
-def GetSubscriptions(request):
-    return render(request, 'subscriptions.html', {'data' : {
-        'current_date': date.today(),
-        'subscriptions': [
+def getSubscriptionsData():
+    return [
             {'title': 'Метро', 'id': 1},
             {'title': 'МЦД', 'id': 2},
             {'title': 'МЦК', 'id': 3},
@@ -15,6 +13,11 @@ def GetSubscriptions(request):
             {'title': 'Велосипеды', 'id': 5},
             {'title': 'Самокаты', 'id': 6},
         ]
+
+def GetSubscriptions(request):
+    return render(request, 'subscriptions.html', {'data' : {
+        'current_date': date.today(),
+        'subscriptions': getSubscriptionsData()
     }})
 
 def GetSubscription(request, id):
