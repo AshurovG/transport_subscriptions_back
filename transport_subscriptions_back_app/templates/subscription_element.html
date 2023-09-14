@@ -1,8 +1,10 @@
 <!-- <li><a href="{% url 'subscription_url' element.id %}">{{ element.title }}</a> </li> -->
+{% load static %}
 
 <div class="subscription__card">
     <div class="subscription__card-container">
-        <div class="subscription__card-image"></div>
+        <!-- <div class="subscription__card-image"></div> -->
+        <img src="{% static 'images/subway.jpg' %}" class="subscription__card-image"/>
     <div class="subscription__card-info">
         <div class="subscription__card-item subscription__card-title">{{element.title}}</div>
         <div class="subscription__card-item subscription__card-price">от 500р.</div>
