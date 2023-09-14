@@ -1,7 +1,12 @@
 {% extends 'base.html' %}
 
-{% block title %}Заказ №{{ data.id }}{% endblock %}
+<!-- {% block title %}Заказ №{{ data.id }}{% endblock %} -->
 
 {% block content %}
-  <div class="order-text">Информация о заказе №{{ data.id }}</div>
+  <div class="detailed__info">
+    <div class="detailed__info-container">
+      Информация о заказе №{{ data.id }}
+      <img src="" alt="">
+    </div>
+  </div>
 {% endblock %}
