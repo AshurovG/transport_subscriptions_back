@@ -26,7 +26,6 @@ def GetSubscription(request, id):
         print(subscription['rates'])
     else:
         print("Not found")
-    return render(request, 'sunbcription.html', {'data' : {
-        'current_date': date.today(),
-        'id': id
+    return render(request, 'subscription.html', {'data' : {
+        'subscription': subscription
     }})
