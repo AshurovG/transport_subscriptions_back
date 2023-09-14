@@ -1,1 +1,11 @@
-<li><a href="{% url 'subscription_url' element.id %}">{{ element.title }}</a> </li>
+<!-- <li><a href="{% url 'subscription_url' element.id %}">{{ element.title }}</a> </li> -->
+
+<div class="subscription__card">
+    <div class="subscription__card-container">
+        <div class="subscription__card-image"></div>
+    <div class="subscription__card-info">
+        <div class="subscription__card-item subscription__card-title">{{element.title}}</div>
+        <div class="subscription__card-item subscription__card-price">от 500р.</div>
+    </div>
+    </div>
+</div>

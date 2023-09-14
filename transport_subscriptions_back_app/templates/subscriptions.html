@@ -1,13 +1,33 @@
 {% extends 'base.html' %}
 
+
 {% block title %}Список заказов{% endblock %}
 
 {% block content %}
-<ul>
-    {% for subscription in data.subscriptions %}
-       {% include 'subscription_element.html' with element=subscription%}
-    {% empty %}
-        <li>Список пуст</li>
-    {% endfor %}
-</ul>
-{% endblock %}
+<div class="main__image">
+</div>
+
+
+<div class="container">
+
+    <div class="cards__wrapper">
+        <div class="cards__info">
+            <h2 class="cards__info-title">Виды абонементов</h2>
+            <div class="cards__info-text">
+                <p class="cards__info-text-item"> какой то текст про абонементы</p>
+                <p class="cards__info-text-item"> какой то текст про абонементы</p>
+                <p class="cards__info-text-item"> какой то текст про абонементы</p>
+            </div>
+            
+        </div>
+        <div class="cards__list">
+            {% for subscription in data.subscriptions %}
+           {% include 'subscription_element.html' with element=subscription%}
+        {% empty %}
+            <li>Список пуст</li>
+        {% endfor %}
+        </div>
+    </div>
+    {% endblock %}
+</div>
+
