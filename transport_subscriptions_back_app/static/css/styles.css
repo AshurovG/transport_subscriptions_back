@@ -95,6 +95,8 @@ a {
   line-height: 140%;
 } */
 
+
+
 .cards__wrapper {
   width: 100%;
   margin-top: 70px;
@@ -108,7 +110,18 @@ a {
   font-weight: 700;
   line-height: 140%;
 
-  margin-bottom: 60px;
+  margin-bottom: 40px;
+}
+
+.cards__input {
+  width: 100%;
+  padding: 20px;
+  margin-bottom: 30px;
+  font-size: 16px;
+}
+
+.cards__input:focus {
+  outline: 1px solid #3D348B;
 }
 
 .cards__info-text {
