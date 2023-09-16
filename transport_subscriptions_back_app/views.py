@@ -14,14 +14,28 @@ def getSubscriptionsData():
         ]
 
 def GetSubscriptions(request):
+    query = request.GET.get("sub")
+    print(query)
+    subs = getSubscriptionsData()
+    res = []
+    
+    for sub in subs:
+        if (query is not None):
+            if query.lower() in sub["title"].lower():
+                res.append(sub)
+        else:
+            res = subs
+        
+
+    # return res
+
     return render(request, 'subscriptions.html', {'data' : {
-        'current_date': date.today(),
-        'subscriptions': getSubscriptionsData()
+        'subscriptions': res
     }})
 
 def GetSubscription(request, id):
-    subscriptions_data = getSubscriptionsData()
-    subscription = next((sub for sub in subscriptions_data if sub['id'] == id), None)
+    subscriptionsData = getSubscriptionsData()
+    subscription = next((sub for sub in subscriptionsData if sub['id'] == id), None)
     if subscription:
         print(subscription['rates'])
     else:
@@ -29,3 +43,14 @@ def GetSubscription(request, id):
     return render(request, 'subscription.html', {'data' : {
         'subscription': subscription
     }})
+
+# def searchGroups(group_name):
+#     groups = getGroups()
+    
+#     res = []
+    
+#     for group in groups:
+#         if group_name.lower() in group["group_name"].lower():
+#             res.append(group)
+
+#     return res

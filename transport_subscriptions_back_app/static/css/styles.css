@@ -113,10 +113,21 @@ a {
   margin-bottom: 40px;
 }
 
+.cards__info-text {
+  width: 90%;
+  position: relative;
+}
+
+.cards__search {
+  width: 100%;
+  height: 130px;
+  position: relative;
+}
+
 .cards__input {
   width: 100%;
   padding: 20px;
-  margin-bottom: 30px;
+  margin-bottom: 10px;
   font-size: 16px;
 }
 
@@ -124,8 +135,18 @@ a {
   outline: 1px solid #3D348B;
 }
 
-.cards__info-text {
-  width: 90%;
+.cards__btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  display: inline-block;
+  padding: 20px 30px;
+  background-color: #3D348B;
+  color: #fff;
+  font-size: 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: .2s background-color ease;
 }
 
 .cards__info-text-item {
@@ -235,10 +256,6 @@ a {
   margin-top: 30px;
 }
 
-.detailed__rates-container {
-  
-}
-
 .detailed__rates-title {
   color: #3D348B;
   font-size: 30px;
@@ -264,11 +281,7 @@ a {
   vertical-align: center;
 }
 
-.detailed__rates-list-item-btn {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+.btn {
   display: inline-block;
   padding: 20px 30px;
   background-color: #3D348B;
@@ -279,7 +292,14 @@ a {
   transition: .2s background-color ease;
 }
 
-.detailed__rates-list-item-btn:hover {
+.detailed__rates-list-item-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.btn:hover {
   background-color: #2b255e;
 }
 
