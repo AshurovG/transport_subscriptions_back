@@ -104,6 +104,10 @@ a {
   justify-content: space-between;
 }
 
+.cards__info {
+  max-width: 40%;
+}
+
 .cards__info-title {
   color: var(--black, #333);
   font-size: 40px;
@@ -136,6 +140,7 @@ a {
 }
 
 .cards__btn {
+  margin-bottom: 30px;
   position: absolute;
   bottom: 0;
   right: 0;
@@ -211,6 +216,11 @@ a {
   display: grid;
   grid-template-columns: 1fr  1fr;
   gap: 50px;
+}
+
+.empty__list {
+  margin: 0 auto;
+  margin-top: 200px;
 }
 
 

@@ -31,7 +31,7 @@
             {% for subscription in data.subscriptions %}
            {% include 'subscription_element.html' with element=subscription%}
         {% empty %}
-            <li>Список пуст</li>
+            <h2 class="empty__list">Такой транспорт не найден</h2>
         {% endfor %}
         </div>
     </div>
