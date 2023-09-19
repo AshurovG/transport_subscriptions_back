@@ -8,14 +8,14 @@
       <div class="detailed__info-preview">
         <img class="detailed__image" src="{% static data.subscription.src %}" alt="{{data.subscription.title}}">
         <div class="detailed__text">
-          <h1 class="detailed__text-title">{{data.subscription.title}}</h1>
+          <div class="detailed__text-title-container  "><h1 class="detailed__text-title">{{data.subscription.title}}</h1><a href="/"> <button class="btn">Назад</button></a></div>
           <h4 class="detailed__text-subtitle">{{data.subscription.info}}</h4>
-          <p class="detailed__text-text">Выберите подходящий для себя тариф по выгодным услоиям и заполните заявку для зачисления абонемента на вашу карту!</p>
+          <p class="detailed__text-text">Выберите подходящий для себя абонемент по выгодным услоиям и заполните заявку для зачисления абонемента на вашу карту!</p>
         </div>
       </div>
 
       <div class="detailed__rates-container">
-        <h2 class="detailed__rates-title">Список тарифов на данный вид транспорта:</h2>
+        <h2 class="detailed__rates-title">Список абонементов на данный вид транспорта:</h2>
         <div class="detailed__rates-list">
           {% for rate in data.subscription.rates %}
               <!-- Вывод ваших данных о расценках -->
