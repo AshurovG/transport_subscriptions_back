@@ -2,22 +2,6 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from transport_subscriptions_back_app.models import *
 
-# def GetVacancies(request):
-#     keyword = request.GET.get('keyword')
-#     a = Vacancies.objects.filter(status='enabled')
-#     if keyword:
-#          keyword = keyword[0].upper()+keyword[1:]
-#          a = Vacancies.objects.filter(status='enabled').filter(title=keyword)
-#     return render(request, 'vacancies.html', {'data': {
-#         'current_date': date.today(),
-#         'vacancies': a},
-#         "search_query": keyword if keyword else ""})
-
-# def GetVacancy(request, id):
-#     return render(request, 'vacancy.html', {'data' : {
-#         'current_date': date.today(),
-#         'vacancy': Vacancies.objects.get(id = id)
-#     }})
 
 def getSubscriptionsData():
     return [
@@ -30,7 +14,6 @@ def getSubscriptionsData():
 
 def GetSubscriptions(request):
     query = request.GET.get("sub")
-    print(query)
     subs = getSubscriptionsData()
     res = []
     
@@ -40,6 +23,7 @@ def GetSubscriptions(request):
                 res.append(sub)
         else:
             res = subs
+            query = ''
 
     return render(request, 'subscriptions.html', {'data' : {
         'subscriptions': res,
