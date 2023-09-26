@@ -1,8 +1,23 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from datetime import date
+from transport_subscriptions_back_app.models import *
 
-# subscriptionsData =
+# def GetVacancies(request):
+#     keyword = request.GET.get('keyword')
+#     a = Vacancies.objects.filter(status='enabled')
+#     if keyword:
+#          keyword = keyword[0].upper()+keyword[1:]
+#          a = Vacancies.objects.filter(status='enabled').filter(title=keyword)
+#     return render(request, 'vacancies.html', {'data': {
+#         'current_date': date.today(),
+#         'vacancies': a},
+#         "search_query": keyword if keyword else ""})
+
+# def GetVacancy(request, id):
+#     return render(request, 'vacancy.html', {'data' : {
+#         'current_date': date.today(),
+#         'vacancy': Vacancies.objects.get(id = id)
+#     }})
 
 def getSubscriptionsData():
     return [
@@ -25,9 +40,6 @@ def GetSubscriptions(request):
                 res.append(sub)
         else:
             res = subs
-        
-
-    # return res
 
     return render(request, 'subscriptions.html', {'data' : {
         'subscriptions': res
@@ -43,14 +55,3 @@ def GetSubscription(request, id):
     return render(request, 'subscription.html', {'data' : {
         'subscription': subscription
     }})
-
-# def searchGroups(group_name):
-#     groups = getGroups()
-    
-#     res = []
-    
-#     for group in groups:
-#         if group_name.lower() in group["group_name"].lower():
-#             res.append(group)
-
-#     return res
