@@ -4,5 +4,6 @@ from django.urls import path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('hello/', views.hello),
+    path('', views.GetSubscriptions),
+    path('subscription/<int:id>/', views.GetSubscription, name='subscription_url'),
 ]
