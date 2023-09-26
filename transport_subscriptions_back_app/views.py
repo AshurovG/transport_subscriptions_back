@@ -42,7 +42,8 @@ def GetSubscriptions(request):
             res = subs
 
     return render(request, 'subscriptions.html', {'data' : {
-        'subscriptions': res
+        'subscriptions': res,
+        'inputValue': query
     }})
 
 def GetSubscription(request, id):
