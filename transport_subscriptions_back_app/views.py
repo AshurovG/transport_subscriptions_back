@@ -25,12 +25,10 @@ def GetSubscriptions(request):
                 res.append(sub)
         else:
             res = subs
-        
-
-    # return res
 
     return render(request, 'subscriptions.html', {'data' : {
-        'subscriptions': res
+        'subscriptions': res,
+        'inputValue': query
     }})
 
 def GetSubscription(request, id):
@@ -43,14 +41,3 @@ def GetSubscription(request, id):
     return render(request, 'subscription.html', {'data' : {
         'subscription': subscription
     }})
-
-# def searchGroups(group_name):
-#     groups = getGroups()
-    
-#     res = []
-    
-#     for group in groups:
-#         if group_name.lower() in group["group_name"].lower():
-#             res.append(group)
-
-#     return res
