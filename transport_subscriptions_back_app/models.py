@@ -43,8 +43,6 @@ class Subscriptions(models.Model):
     title = models.CharField(max_length=50)
     src = models.TextField(blank=True, null=True)
     info = models.TextField(blank=True, null=True)
-    rate_names = ArrayField(models.TextField(blank=True, null=True))
-    rate_prices = ArrayField(models.TextField(blank=True, null=True))
 
     STATUS_CHOICES = [
         ('enabled', 'enabled'),
@@ -55,3 +53,13 @@ class Subscriptions(models.Model):
     class Meta:
         managed = True
         db_table = 'subscriptions'
+
+class SubscriptionsRates(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    title = models.CharField(max_length=50)
+    price = models.TextField(blank=True, null=True)
+    id_subscriptions = models.ForeignKey('Subscriptions', models.DO_NOTHING, db_column='id_subscriptions', blank=True, null=True, related_name='rates')
+
+    class Meta:
+        managed = True
+        db_table = 'subscription_rates'

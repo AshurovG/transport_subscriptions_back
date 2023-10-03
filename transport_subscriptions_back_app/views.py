@@ -11,33 +11,12 @@ def getSubscriptionsData():
             {'title': 'Самокаты', 'id': 5, 'src': 'images/scooter.jpeg', 'info': 'Стоимости тарифов зависят от колчиства дней, на которое вы приобритаете абонемент. Можно приобрести абонемент на определенное количесто дней от 30 до 365, и цена будет составлять от 400р. до 3500р. Обратите внимание, что абонемент распространяется только на бесплатный старт проезда на самокате, последующие минуты проезда необходимо оплачивать по 7р./минута', 'rates':[{'title': 'Бесплатный старт 30 дней', 'price': '400р.'}, {'title': 'Бесплатный старт 90 дней', 'price': '1000р.'}, {'title': 'Бесплатный старт 365 дней', 'price': '3500р.'}],},
         ]
 
-
-# def GetVacancies(request):
-#     keyword = request.GET.get('keyword')
-#     a = Vacancies.objects.filter(status='enabled')
-#     if keyword:
-#          keyword = keyword[0].upper()+keyword[1:]
-#          a = Vacancies.objects.filter(status='enabled').filter(title=keyword)
-#     return render(request, 'vacancies.html', {'data': {
-#         'current_date': date.today(),
-#         'vacancies': a},
-#         "search_query": keyword if keyword else ""})
-
-# def GetVacancy(request, id):
-#     return render(request, 'vacancy.html', {'data' : {
-#         'current_date': date.today(),
-#         'vacancy': Vacancies.objects.get(id = id)
-#     }})
-
 def GetSubscriptions(request):
     query = request.GET.get("sub")
     subs = Subscriptions.objects.filter(status='enabled')
 
     if query:
          subs = Subscriptions.objects.filter(status='enabled').filter(title__icontains=query)
-    # if query:
-    #      print(11111)
-    #      subs = Subscriptions.objects.filter(status='enabled').filter(title=query)
     else:
         query = ''
     
@@ -47,6 +26,9 @@ def GetSubscriptions(request):
     }})
 
 def GetSubscription(request, id):
+    subscription = Subscriptions.objects.prefetch_related('rates').get(id=id)
+    for rate in subscription.rates.all():
+        print(rate.title)
     return render(request, 'subscription.html', {'data' : {
-        'subscription': Subscriptions.objects.get(id = id)
+        'subscription': subscription
     }})
