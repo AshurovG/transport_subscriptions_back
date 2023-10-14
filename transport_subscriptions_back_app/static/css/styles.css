@@ -189,6 +189,7 @@ a {
 .subscription__card-info {
   padding: 20px 0;
   display: flex;
+  gap: 10px;
   justify-content: space-between;
   align-items: center;
 
@@ -313,14 +314,18 @@ a {
 
 
 .detailed__rates-list-item-btn {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  margin-top: 20px;
 }
 
 .btn:hover {
   background-color: #2b255e;
+}
+
+
+.del__button {
+  background-color: #f1f1f4;
+  padding: 20px 30px;
+  border-radius: 10px;
 }
 
 
