@@ -1,4 +1,4 @@
-from models import *
+from transport_subscription_app.models import *
 from rest_framework import serializers
 
 
