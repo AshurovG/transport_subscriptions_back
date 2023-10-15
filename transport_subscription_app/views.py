@@ -18,6 +18,8 @@ def getСategories(request):
 
 @api_view(['Get'])
 def getCategoryById(request, pk, format=None):
+    if not Category.objects.filter(pk=pk).exists():
+        return Response(f"Категории с таким id нет")
     category = get_object_or_404(Category, pk=pk)
     if request.method == 'GET':
         serializer = CategorySerializer(category)
@@ -33,6 +35,8 @@ def postСategory(request):
 
 @api_view(['PUT'])
 def putСategory(request, pk):
+    if not Category.objects.filter(pk=pk).exists():
+        return Response(f"Категории с таким id нет")
     category = get_object_or_404(Category, pk=pk)
     serializer = CategorySerializer(category, data=request.data)
     if serializer.is_valid():
@@ -40,8 +44,24 @@ def putСategory(request, pk):
         return Response(serializer.data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+# ВОЗМОЖНО ПРИДЕТСЯ ПЕРЕДЕЛАТЬ НА УДАЛЕНИЕ ЧЕРЕЗ СТАТУС ! ! !
+
+# def DeleteDish(request, pk):
+#     if not Dishes.objects.filter(id=pk).exists():
+#         return Response(f"Блюда с таким id нет")
+#     dish = Dishes.objects.get(id=pk)
+#     dish.status = "удаленo"
+#     dish.save()
+
+#     dish = Dishes.objects.filter(status="есть")
+#     serializer = DishSerializer(dish, many=True)
+#     return Response(serializer.data)
+
 @api_view(['DELETE'])
 def deleteСategory(request, pk):    
+    if not Category.objects.filter(pk=pk).exists():
+        return Response(f"Категории с таким id нет")
     category = get_object_or_404(Category, pk=pk)
     category.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
@@ -57,6 +77,8 @@ def getSubscriptions(request):
 
 @api_view(['Get'])
 def getSubscriptionById(request, pk):
+    if not Subscription.objects.filter(pk=pk).exists():
+        return Response(f"Абонемента с таким id нет")
     subscription = get_object_or_404(Subscription, pk=pk)
     if request.method == 'GET':
         serializer = SubscriptionSerializer(subscription)
@@ -72,6 +94,8 @@ def postSubscription(request):
 
 @api_view(['PUT'])
 def putSubscription(request, pk):
+    if not Subscription.objects.filter(pk=pk).exists():
+        return Response(f"Абонемента с таким id нет")
     subscription = get_object_or_404(Subscription, pk=pk)
     serializer = SubscriptionSerializer(subscription, data=request.data)
     if serializer.is_valid():
@@ -80,7 +104,9 @@ def putSubscription(request, pk):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
-def deleteSubscription(request, pk):    
+def deleteSubscription(request, pk):
+    if not Subscription.objects.filter(pk=pk).exists():
+        return Response(f"Абонемента с таким id нет")
     subscription = get_object_or_404(Subscription, pk=pk)
     subscription.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
