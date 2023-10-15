@@ -41,6 +41,11 @@ class ApplicationSubscription(models.Model):
 class Category(models.Model):
     id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=50, default='')
+    STATUS_CHOICES = [
+        ('enabled', 'enabled'),
+        ('deleted', 'deleted'),
+    ]
+    status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='enabled')    
 
     class Meta:
         db_table = 'category'

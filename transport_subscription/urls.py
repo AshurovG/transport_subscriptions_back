@@ -19,11 +19,8 @@ urlpatterns = [
     path('subscriptions/post', views.postSubscription, name='subscriptions-post'),
     path('subscriptions/<int:pk>/put', views.putSubscription, name='subscriptions-put'),
     path('subscriptions/<int:pk>/delete', views.deleteSubscription, name='subscriptions-delete'),
-    # path(r'stocks/post/', views.post_list, name='stocks-post'),
-    # path(r'stocks/<int:pk>/', views.get_detail, name='stocks-detail'),
-    # path(r'stocks/<int:pk>/put/', views.put_detail, name='stocks-put'),
-    # path(r'stocks/<int:pk>/delete/', views.delete_detail, name='stocks-delete'),
-    # path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    
+    path('applications', views.GetApplications, name = 'applications-list'),
 
     path('admin/', admin.site.urls),
 ]
