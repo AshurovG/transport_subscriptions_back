@@ -111,52 +111,97 @@ def deleteSubscription(request, pk):
     return Response(serializer.data)
 
 
-#Orders
+#Applications
+
+from django.db.models import Q
 
 @api_view(['GET'])
-def GetApplications(request):
+def getApplications(request):
     date_format = "%Y-%m-%d"
     start_date_str = request.query_params.get('start', '2023-01-01')
     end_date_str = request.query_params.get('end', '2023-12-31')
     start = datetime.strptime(start_date_str, date_format).date()
     end = datetime.strptime(end_date_str, date_format).date()
-    applications = Application.objects.filter(creation_date__range=(start, end)).order_by('creation_date')
+    applications = Application.objects.filter(
+        ~Q(status="Удалено"),
+        creation_date__range=(start, end)
+    ).order_by('creation_date')
     serializer = ApplicationSerializer(applications, many=True)
     
     return Response(serializer.data)
 
-# @api_view(['GET'])                                  # 1 заказ
-# def GetOrder(request, pk):
-#     if not Orders.objects.filter(id=pk).exists():
-#         return Response(f"Заказа с таким id нет")
+@api_view(['GET'])
+def getApplication(request, pk):
+    if not Application.objects.filter(pk=pk).exists() or Application.objects.filter(pk=pk, status="Удалено").exists():
+        return Response("Заявки с таким id нет")
 
-#     order = Orders.objects.get(id=pk)
-#     serializer = OrderSerializer(order)
-#     return Response(serializer.data)
+    application = Application.objects.get(pk=pk)
+    serializer = ApplicationSerializer(application)
+    return Response(serializer.data)
 
-# @api_view(['DELETE'])                               # удалить заказ?
-# def DeleteOrder(request, pk):
-#     if not Orders.objects.filter(id=pk).exists():
-#         return Response(f"Заказа с таким id нет")
-#     order = Orders.objects.get(id=pk)
-#     order.status = "отказ"
-#     order.save()
+@api_view(['DELETE'])
+def DeleteApplication(request, pk):
+    if not Application.objects.filter(pk=pk).exists():
+        return Response(f"Заявки с таким id нет")
+    application = Application.objects.get(pk=pk)
+    application.status = "Удалено"
+    application.save()
 
-#     order = Orders.objects.all()
-#     serializer = OrderSerializer(order, many=True)
-#     return Response(serializer.data)
+    application = Application.objects.all()
+    serializer = ApplicationSerializer(application, many=True)
+    return Response(serializer.data)
 
-# @api_view(['PUT'])                                  # изменить заказ
-# def PutOrder(request, pk):
-#     try:
-#         order = Orders.objects.get(id=pk)
-#     except Orders.DoesNotExist:
-#         return Response("Заказа с таким id нет")
-#     serializer = OrderSerializer(order, data=request.data, partial=True)
-#     if not serializer.is_valid():
-#         return Response(serializer.errors)
-#     serializer.save()
+@api_view(['PUT']) # можно добавить фильтр на удаленную заявку
+def PutApplication(request, pk):
+    try:
+        order = Application.objects.get(id=pk)
+    except Application.DoesNotExist:
+        return Response("Заявки с таким id нет")
+    serializer = ApplicationSerializer(order, data=request.data, partial=True)
+    if not serializer.is_valid():
+        return Response(serializer.errors)
+    serializer.save()
 
-#     order = Orders.objects.all()
-#     serializer = OrderSerializer(order, many=True)
-#     return Response(serializer.data)
+    order = Application.objects.all()
+    serializer = ApplicationSerializer(order, many=True)
+    return Response(serializer.data)
+
+@api_view(['PUT'])
+def putApplicationByAdmin(request, pk):
+    if not Application.objects.filter(pk=pk).exists():
+        return Response(f"Заявки с таким id нет")
+
+    application = Application.objects.get(pk=pk)
+
+    if application.status != "Проверяется":
+        return Response("Такой заявки нет на проверке")
+    # print('sjdklsjdksjdksjdk')
+    if request.data["status"] not in ["Отказано", "Принято"]:
+        print(11111111)
+        return Response("Неверный статус!")
+    application.status = request.data["status"]
+    application.publication_date=datetime.now().date()
+    application.save()
+
+    serializer = ApplicationSerializer(application)
+    return Response(serializer.data)
+
+
+@api_view(['PUT'])
+def putApplicationByUser(request, pk):
+    if not Application.objects.filter(pk=pk).exists():
+        return Response(f"Заявки с таким id нет")
+
+    application = Application.objects.get(id=pk)
+
+    if application.status != "Зарегистрирован":
+        return Response("Такой заявки не зарегистрировано")
+    if request.data["status"] not in ["Удалено", "Проверяется"]:
+        return Response("Неверный статус!")
+
+    application.status = request.data["status"]
+    application.processed_at=datetime.now().date()
+    application.save()
+
+    serializer = ApplicationSerializer(application)
+    return Response(serializer.data)
