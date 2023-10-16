@@ -9,6 +9,8 @@ from rest_framework.decorators import api_view
 from datetime import datetime
 
 
+user = User(id=2, login="user1", password='1234', isModerator=False)
+
 #Categories
 
 @api_view(['GET'])
@@ -56,11 +58,6 @@ def deleteСategory(request, pk):
     category = Category.objects.filter(status="enabled")
     serializer = CategorySerializer(category, many=True)
     return Response(serializer.data)
-
-    # category = get_object_or_404(Category, pk=pk)
-    # category.delete()
-    # return Response(status=status.HTTP_204_NO_CONTENT)
-
 
 #Subscriptions
 
@@ -170,38 +167,55 @@ def PutApplication(request, pk):
 def putApplicationByAdmin(request, pk):
     if not Application.objects.filter(pk=pk).exists():
         return Response(f"Заявки с таким id нет")
-
     application = Application.objects.get(pk=pk)
-
     if application.status != "Проверяется":
         return Response("Такой заявки нет на проверке")
-    # print('sjdklsjdksjdksjdk')
     if request.data["status"] not in ["Отказано", "Принято"]:
         print(11111111)
         return Response("Неверный статус!")
     application.status = request.data["status"]
     application.publication_date=datetime.now().date()
     application.save()
-
     serializer = ApplicationSerializer(application)
     return Response(serializer.data)
-
 
 @api_view(['PUT'])
 def putApplicationByUser(request, pk):
     if not Application.objects.filter(pk=pk).exists():
         return Response(f"Заявки с таким id нет")
-
     application = Application.objects.get(id=pk)
-
     if application.status != "Зарегистрирован":
         return Response("Такой заявки не зарегистрировано")
     if request.data["status"] not in ["Удалено", "Проверяется"]:
         return Response("Неверный статус!")
-
     application.status = request.data["status"]
     application.processed_at=datetime.now().date()
     application.save()
-
     serializer = ApplicationSerializer(application)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+def PostSubscriptionToApplication(request, pk):
+    try: 
+        application = Application.objects.filter(id_user=user, status="Зарегистрирован").latest('creation_date')
+    except:
+        application = Application(
+            status='зарегистрирован',
+            creation_date=datetime.now(),
+            id_user=user,
+        )
+        application.save()
+    id_application = application
+    id_subscription = Subscription.objects.get(id=pk)
+    try:
+        application_subscription = ApplicationSubscription.objects.get(id_application=id_application, id_subscription=id_subscription)
+        return Response("Такой абонемент уже добавлен в заявку")
+    except ApplicationSubscription.DoesNotExist:
+        application_subscription = ApplicationSubscription(
+            id_application=id_application,
+            id_subscription=id_subscription,
+        )
+        application_subscription.save()
+    applications = Application.objects.all()
+    serializer = ApplicationSerializer(applications, many=True)
     return Response(serializer.data)
