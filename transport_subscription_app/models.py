@@ -21,7 +21,7 @@ class Application(models.Model):
     creation_date = models.DateField(blank=True, null=True)
     approving_date = models.DateField(blank=True, null=True)
     publication_date = models.DateField(blank=True, null=True)
-    id_moderator = models.ForeignKey('User', on_delete=models.CASCADE,  db_column='id_moderator', related_name='moderator_application')
+    id_moderator = models.ForeignKey('User', on_delete=models.CASCADE,  db_column='id_moderator', related_name='moderator_application', blank=True, null=True)
     id_user = models.ForeignKey('User', on_delete=models.CASCADE, db_column='id_user', related_name='user_application')
 
     class Meta:
