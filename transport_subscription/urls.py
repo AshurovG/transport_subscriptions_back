@@ -30,8 +30,8 @@ urlpatterns = [
 
     path('applications/<int:pk>/post', views.PostSubscriptionToApplication, name = 'add_subscription_to_application'),
 
-    # path('dishes_orders/<int:pk>/put', views.PutDishesOrders, name = 'dishes_orders_put'),
-    # path('dishes_orders/<int:pk>/delete', views.DeleteDishesOrders, name = 'dishes_orders_delete'),
+    path('application_subscription/<int:pk>/put', views.PutApplicationSubscription, name = 'application_subscription_put'),
+    path('application_subscription/<int:pk>/delete', views.DeleteApplicationSubscription, name = 'application_subscription_delete'),
 
     path('admin/', admin.site.urls),
 ]
