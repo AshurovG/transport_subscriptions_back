@@ -217,7 +217,7 @@ def PostSubscriptionToApplication(request, pk):
     except ApplicationSubscription.DoesNotExist:
         application_subscription = ApplicationSubscription(
             id_application=id_application,
-            id_subscription=id_subscription,
+            id_subscription=subscription,
         )
         application_subscription.save()
     applications = Application.objects.all()
@@ -255,11 +255,19 @@ def PutApplicationSubscription(request, pk):
 def DeleteApplicationSubscription(request, pk):
     application = get_object_or_404(Application, id_user=user, status="Зарегистрирован")
     try:
-        # application_subscription = get_object_or_404(ApplicationSubscription, pk=pk)
-        application_subscription = get_object_or_404(ApplicationSubscription, id_application=application, id_subscription=Subscription.objects.get(pk=pk))
-        application_subscription.delete()
-    except ApplicationSubscription.DoesNotExist:
-        return Response("Заявка не найдена", status=404)
+        subscription = Subscription.objects.get(pk=pk, status='enabled')
+        try:
+            # application_subscription = get_object_or_404(ApplicationSubscription, pk=pk)
+            application_subscription = get_object_or_404(ApplicationSubscription, id_application=application, id_subscription=subscription)
+            application_subscription.delete()
+            return Response("Абонемент удален", status=200)
+            # application_subscription = ApplicationSubscription.objects.all()
+            # serializer = ApplicationSubscriptionSerializer(application_subscription, many=True)
+            # return Response(serializer.data)
+        except ApplicationSubscription.DoesNotExist:
+            return Response("Заявка не найдена", status=404)
+    except Subscription.DoesNotExist:
+        return Response("Такой услуги нет", status=400)
 
 # @api_view(['DELETE'])
 # def DeleteApplicationSubscription(request, pk):
