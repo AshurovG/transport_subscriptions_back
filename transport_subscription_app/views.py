@@ -9,7 +9,21 @@ from rest_framework.decorators import api_view
 from datetime import datetime
 
 
-user = User(id=2, login="user1", password='1234', isModerator=False)
+class CurrentUserSingleton: 
+    _instance = None 
+ 
+    @classmethod 
+    def get_instance(cls): 
+        if not cls._instance: 
+            cls._instance = cls._get_user() 
+        return cls._instance 
+ 
+    @classmethod 
+    def _get_user(cls): 
+        return User.objects.get(login='user1', password='1234', isModerator=False)
+    
+
+# user = User(id=2, login="user1", password='1234', isModerator=False)
 
 #Categories
 
@@ -196,17 +210,17 @@ def putApplicationByUser(request, pk):
 
 @api_view(['POST'])
 def PostSubscriptionToApplication(request, pk):
+    current_user = CurrentUserSingleton.get_instance()
     try: 
-        application = Application.objects.filter(id_user=user, status="Зарегистрирован").latest('creation_date')
+        application = Application.objects.filter(id_user=current_user, status="Зарегистрирован").latest('creation_date')
     except:
         application = Application(
             status='зарегистрирован',
             creation_date=datetime.now(),
-            id_user=user,
+            id_user=current_user,
         )
         application.save()
     id_application = application
-    # id_subscription = Subscription.objects.get(pk=pk)
     try:
         subscription = Subscription.objects.get(pk=pk, status='enabled')
     except Subscription.DoesNotExist:
@@ -226,7 +240,8 @@ def PostSubscriptionToApplication(request, pk):
 
 @api_view(['PUT'])
 def PutApplicationSubscription(request, pk):
-    application = get_object_or_404(Application, id_user=user, status="Зарегистрирован")
+    current_user = CurrentUserSingleton.get_instance()
+    application = get_object_or_404(Application, id_user=current_user, status="Зарегистрирован")
     
     try:
         subscription = Subscription.objects.get(pk=pk, status='enabled')
@@ -253,11 +268,11 @@ def PutApplicationSubscription(request, pk):
     
 @api_view(['DELETE'])
 def DeleteApplicationSubscription(request, pk):
-    application = get_object_or_404(Application, id_user=user, status="Зарегистрирован")
+    current_user = CurrentUserSingleton.get_instance()
+    application = get_object_or_404(Application, id_user=current_user, status="Зарегистрирован")
     try:
         subscription = Subscription.objects.get(pk=pk, status='enabled')
         try:
-            # application_subscription = get_object_or_404(ApplicationSubscription, pk=pk)
             application_subscription = get_object_or_404(ApplicationSubscription, id_application=application, id_subscription=subscription)
             application_subscription.delete()
             return Response("Абонемент удален", status=200)
@@ -268,26 +283,3 @@ def DeleteApplicationSubscription(request, pk):
             return Response("Заявка не найдена", status=404)
     except Subscription.DoesNotExist:
         return Response("Такой услуги нет", status=400)
-
-# @api_view(['DELETE'])
-# def DeleteApplicationSubscription(request, pk):
-#     application = get_object_or_404(Application, id_user=user, status="Зарегистрирован")
-
-#     application_subscription = get_object_or_404(ApplicationSubscription, pk=pk)
-#     application_subscription.delete()
-
-#     application_subscription = ApplicationSubscription.objects.all()
-#     serializer = ApplicationSubscriptionSerializer(application_subscription, many=True)
-#     return Response(serializer.data)
-
-# @api_view(['DELETE'])
-# def DeleteApplicationSubscription(request, pk):
-#     if not ApplicationSubscription.objects.filter(pk=pk).exists():
-#         return Response(f"Такой записи нет")
-
-#     application_subscription = get_object_or_404(ApplicationSubscription, pk=pk)
-#     application_subscription.delete()
-
-#     application_subscription = ApplicationSubscription.objects.all()
-#     serializer = ApplicationSubscriptionSerializer(application_subscription, many=True)
-#     return Response(serializer.data)
