@@ -141,7 +141,7 @@ def getApplications(request):
     
     return Response(serializer.data)
 
-@api_view(['GET'])
+@api_view(['GET']) # GET самой заявки
 def getApplication(request, pk):
     if not Application.objects.filter(pk=pk).exists() or Application.objects.filter(pk=pk, status="Удалено").exists():
         return Response("Заявки с таким id нет")
@@ -149,6 +149,19 @@ def getApplication(request, pk):
     application = Application.objects.get(pk=pk)
     serializer = ApplicationSerializer(application)
     return Response(serializer.data)
+
+@api_view(['GET'])
+def getSubscriptionsFromApplication(request, pk):
+    try:
+        application = Application.objects.get(pk=pk)
+        if application.status == "Удалено":
+            return Response("Заявки с таким id нет")
+
+        application_subscriptions = ApplicationSubscription.objects.filter(id_application=application)
+        serializer = ApplicationSubscriptionSerializer(application_subscriptions, many=True)
+        return Response(serializer.data)
+    except Application.DoesNotExist:
+        return Response("Заявки с таким id нет")
 
 @api_view(['DELETE'])
 def DeleteApplication(request, pk):
