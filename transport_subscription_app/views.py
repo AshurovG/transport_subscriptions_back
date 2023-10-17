@@ -151,7 +151,7 @@ def DeleteApplication(request, pk):
 @api_view(['PUT']) # можно добавить фильтр на удаленную заявку
 def PutApplication(request, pk):
     try:
-        order = Application.objects.get(id=pk)
+        order = Application.objects.get(pk=pk)
     except Application.DoesNotExist:
         return Response("Заявки с таким id нет")
     serializer = ApplicationSerializer(order, data=request.data, partial=True)
@@ -206,9 +206,13 @@ def PostSubscriptionToApplication(request, pk):
         )
         application.save()
     id_application = application
-    id_subscription = Subscription.objects.get(pk=pk)
+    # id_subscription = Subscription.objects.get(pk=pk)
     try:
-        application_subscription = ApplicationSubscription.objects.get(id_application=id_application, id_subscription=id_subscription)
+        subscription = Subscription.objects.get(pk=pk, status='enabled')
+    except Subscription.DoesNotExist:
+        return Response("Такой услуги нет", status=400)
+    try:
+        application_subscription = ApplicationSubscription.objects.get(id_application=id_application, id_subscription=subscription)
         return Response("Такой абонемент уже добавлен в заявку")
     except ApplicationSubscription.DoesNotExist:
         application_subscription = ApplicationSubscription(
@@ -222,15 +226,18 @@ def PostSubscriptionToApplication(request, pk):
 
 @api_view(['PUT'])
 def PutApplicationSubscription(request, pk):
-    # Находим последнюю зарегистрированную заявку пользователя
     application = get_object_or_404(Application, id_user=user, status="Зарегистрирован")
     
     try:
-        application_subscription = get_object_or_404(ApplicationSubscription, id_application=application, id_subscription=Subscription.objects.get(pk=pk))
-        # application_subscription.id_subscription = request.data.get('id_subscription')  # Обновляем поле id_subscription
-        subscription_id = request.data.get('id_subscription')
+        subscription = Subscription.objects.get(pk=pk, status='enabled')
+    except Subscription.DoesNotExist:
+        return Response("Такой услуги нет", status=400)
+    
+    application_subscription = ApplicationSubscription.objects.filter(id_application=application, id_subscription=subscription).first()
+    if application_subscription:
+        id_subscription = request.data.get('id_subscription')
         try:
-            subscription = Subscription.objects.get(id=subscription_id)
+            subscription = Subscription.objects.get(id=id_subscription, status='enabled')
             application_subscription.id_subscription = subscription
             application_subscription.save()
             serializer = ApplicationSubscriptionSerializer(application_subscription, data=request.data, partial=True)
@@ -239,53 +246,40 @@ def PutApplicationSubscription(request, pk):
                 return Response(serializer.data)
             else:
                 return Response(serializer.errors, status=400)
-        except:
-            return Response("Такой услуги нет")
-        
-    except ApplicationSubscription.DoesNotExist:
-        return Response("Указанный абонемент не найден в заявке", status=404)
+        except Subscription.DoesNotExist:
+            return Response("Такой услуги нет", status=400)
+    else:
+        return Response("Заявка не найдена", status=404)
     
-    except Application.DoesNotExist:
-        return Response("Такая заявка не найдена", status=404)
-# application subscription (many to many)
-
-# @api_view(['PUT'])
-# def PutDishesOrders(request, pk):
-#     if not DishesOrders.objects.filter(id=pk).exists():
-#         return Response(f"Связи м-м с таким id нет?")
-
-#     dishes_orders = DishesOrders.objects.get(id=pk)
-#     dishes_orders.quantity = request.data["quantity"]
-#     dishes_orders.save()
-
-#     dishes_orders = DishesOrders.objects.all()
-#     serializer = DishOrderSerializer(dishes_orders, many=True)
-#     return Response(serializer.data)
-
-# @api_view(['PUT'])
-# def PutApplicationSubscription(request, pk):
-#     try: 
-#         application = Application.objects.filter(id_user=user, status="Зарегистрирован").latest('creation_date') # ищем заявку пользователя
-#         try:
-#             application_subscription = get_object_or_404(ApplicationSubscription, pk=pk)
-#             serializer = CategorySerializer(application_subscription, data=request.data, fields=['id_subscription'])
-#             if serializer.is_valid(partial=True):
-#                 serializer.save(id_subscription=request.data['id_subscription'])
-#                 return Response(serializer.data)
-#         except ApplicationSubscription.DoesNotExist:
-#             return Response('Такого абонемента в заявке нет')      
-#     except:
-#         return Response('Такой заявки нет')
-
-
 @api_view(['DELETE'])
 def DeleteApplicationSubscription(request, pk):
-    if not ApplicationSubscription.objects.filter(pk=pk).exists():
-        return Response(f"Такой записи нет")
+    application = get_object_or_404(Application, id_user=user, status="Зарегистрирован")
+    try:
+        # application_subscription = get_object_or_404(ApplicationSubscription, pk=pk)
+        application_subscription = get_object_or_404(ApplicationSubscription, id_application=application, id_subscription=Subscription.objects.get(pk=pk))
+        application_subscription.delete()
+    except ApplicationSubscription.DoesNotExist:
+        return Response("Заявка не найдена", status=404)
 
-    application_subscription = get_object_or_404(ApplicationSubscription, pk=pk)
-    application_subscription.delete()
+# @api_view(['DELETE'])
+# def DeleteApplicationSubscription(request, pk):
+#     application = get_object_or_404(Application, id_user=user, status="Зарегистрирован")
 
-    application_subscription = ApplicationSubscription.objects.all()
-    serializer = ApplicationSubscriptionSerializer(application_subscription, many=True)
-    return Response(serializer.data)
+#     application_subscription = get_object_or_404(ApplicationSubscription, pk=pk)
+#     application_subscription.delete()
+
+#     application_subscription = ApplicationSubscription.objects.all()
+#     serializer = ApplicationSubscriptionSerializer(application_subscription, many=True)
+#     return Response(serializer.data)
+
+# @api_view(['DELETE'])
+# def DeleteApplicationSubscription(request, pk):
+#     if not ApplicationSubscription.objects.filter(pk=pk).exists():
+#         return Response(f"Такой записи нет")
+
+#     application_subscription = get_object_or_404(ApplicationSubscription, pk=pk)
+#     application_subscription.delete()
+
+#     application_subscription = ApplicationSubscription.objects.all()
+#     serializer = ApplicationSubscriptionSerializer(application_subscription, many=True)
+#     return Response(serializer.data)
