@@ -175,12 +175,23 @@ def getApplications(request):
 
 @api_view(['GET']) # GET самой заявки
 def getApplication(request, pk):
-    if not Application.objects.filter(pk=pk).exists() or Application.objects.filter(pk=pk, status="Удалено").exists():
-        return Response("Заявки с таким id нет")
+    try:
+        application = Application.objects.get(pk=pk)
+        if application.status == "Удалено":
+            return Response("Заявки с таким id нет")
 
-    application = Application.objects.get(pk=pk)
-    serializer = ApplicationSerializer(application)
-    return Response(serializer.data)
+        application_serializer = ApplicationSerializer(application)
+        application_subscriptions = ApplicationSubscription.objects.filter(id_application=application)
+        application_subscriptions_serializer = ApplicationSubscriptionSerializer(application_subscriptions, many=True)
+
+        response_data = {
+            'application': application_serializer.data,
+            'subscriptions': application_subscriptions_serializer.data
+        }
+
+        return Response(response_data)
+    except Application.DoesNotExist:
+        return Response("Заявки с таким id нет")
 
 @api_view(['GET'])
 def getSubscriptionsFromApplication(request, pk):
