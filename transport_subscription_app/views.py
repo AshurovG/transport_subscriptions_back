@@ -98,6 +98,38 @@ def postSubscription(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['POST'])
+def PostSubscriptionToApplication(request, pk):
+    current_user = CurrentUserSingleton.get_instance()
+    try: 
+        application = Application.objects.filter(id_user=current_user, status="Зарегистрирован").latest('creation_date')
+    except:
+        application = Application(
+            status='Зарегистрирован',
+            creation_date=datetime.now(),
+            id_user=current_user,
+        )
+        application.save()
+    id_application = application
+    try:
+        subscription = Subscription.objects.get(pk=pk, status='enabled')
+    except Subscription.DoesNotExist:
+        return Response("Такой услуги нет", status=400)
+    try:
+        application_subscription = ApplicationSubscription.objects.get(id_application=id_application, id_subscription=subscription)
+        return Response("Такой абонемент уже добавлен в заявку")
+    except ApplicationSubscription.DoesNotExist:
+        application_subscription = ApplicationSubscription(
+            id_application=id_application,
+            id_subscription=subscription,
+        )
+        application_subscription.save()
+    application_subscription = ApplicationSubscription.objects.filter(id_application = id_application)
+    serializer = ApplicationSubscriptionSerializer(application_subscription, many=True)
+    # applications = Application.objects.all()
+    # serializer = ApplicationSerializer(applications, many=True)
+    return Response(serializer.data)
+
 @api_view(['PUT'])
 def putSubscription(request, pk):
     if not Subscription.objects.filter(pk=pk).exists():
@@ -221,36 +253,6 @@ def putApplicationByUser(request, pk):
     serializer = ApplicationSerializer(application)
     return Response(serializer.data)
 
-@api_view(['POST'])
-def PostSubscriptionToApplication(request, pk):
-    current_user = CurrentUserSingleton.get_instance()
-    try: 
-        application = Application.objects.filter(id_user=current_user, status="Зарегистрирован").latest('creation_date')
-    except:
-        application = Application(
-            status='зарегистрирован',
-            creation_date=datetime.now(),
-            id_user=current_user,
-        )
-        application.save()
-    id_application = application
-    try:
-        subscription = Subscription.objects.get(pk=pk, status='enabled')
-    except Subscription.DoesNotExist:
-        return Response("Такой услуги нет", status=400)
-    try:
-        application_subscription = ApplicationSubscription.objects.get(id_application=id_application, id_subscription=subscription)
-        return Response("Такой абонемент уже добавлен в заявку")
-    except ApplicationSubscription.DoesNotExist:
-        application_subscription = ApplicationSubscription(
-            id_application=id_application,
-            id_subscription=subscription,
-        )
-        application_subscription.save()
-    applications = Application.objects.all()
-    serializer = ApplicationSerializer(applications, many=True)
-    return Response(serializer.data)
-
 @api_view(['PUT'])
 def PutApplicationSubscription(request, pk):
     current_user = CurrentUserSingleton.get_instance()
@@ -296,3 +298,13 @@ def DeleteApplicationSubscription(request, pk):
             return Response("Заявка не найдена", status=404)
     except Subscription.DoesNotExist:
         return Response("Такой услуги нет", status=400)
+    
+
+# {
+#   "title": "Тестовый абонемент",
+#   "price": "5000р.",
+#   "info": "Дополнительная информация об абонементе",
+#   "src": "images/mcd.jpg",
+#   "id_category": 1,
+#   "status": "enabled"
+# }
