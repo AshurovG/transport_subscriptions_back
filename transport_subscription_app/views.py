@@ -75,11 +75,41 @@ def deleteСategory(request, pk):
 
 #Subscriptions
 
+# @api_view(['GET'])
+# def getSubscriptions(request):
+#     value = request.query_params.get('value')
+
+#     if value:
+#         subscriptions = Subscription.objects.filter(status="enabled", name__icontains=value)
+#     else:
+#         subscriptions = Subscription.objects.filter(status="enabled")
+
+#     serializer = SubscriptionSerializer(subscriptions, many=True)
+#     return Response(serializer.data)
+
 @api_view(['GET'])
 def getSubscriptions(request):
-    subscriptions = Subscription.objects.filter(status="enabled")
+    value = request.query_params.get("value")
+
+    if value:
+        subscriptions = Subscription.objects.filter(status="enabled", id_category__title__icontains=value)
+    else:
+        subscriptions = Subscription.objects.filter(status="enabled")
+
     serializer = SubscriptionSerializer(subscriptions, many=True)
     return Response(serializer.data)
+
+# @api_view(['GET'])
+# def getSubscriptions(request):
+#     value = request.query_params.get("value")
+
+#     if value:
+#         subscriptions = Subscription.objects.filter(status="enabled", title__icontains=value)
+#     else:
+#         subscriptions = Subscription.objects.filter(status="enabled")
+
+#     serializer = SubscriptionSerializer(subscriptions, many=True)
+#     return Response(serializer.data)
 
 @api_view(['Get'])
 def getSubscriptionById(request, pk):
