@@ -165,15 +165,23 @@ def getApplications(request):
     end_date_str = request.query_params.get('end', '2023-12-31')
     start = datetime.strptime(start_date_str, date_format).date()
     end = datetime.strptime(end_date_str, date_format).date()
+    
+    status = request.data.get('status')
+
     applications = Application.objects.filter(
         ~Q(status="Удалено"),
         creation_date__range=(start, end)
-    ).order_by('creation_date')
+    )
+    
+    if status:
+        applications = applications.filter(status=status)
+
+    applications = applications.order_by('creation_date')
     serializer = ApplicationSerializer(applications, many=True)
     
     return Response(serializer.data)
 
-@api_view(['GET']) # GET самой заявки
+@api_view(['GET'])
 def getApplication(request, pk):
     try:
         application = Application.objects.get(pk=pk)
@@ -193,18 +201,6 @@ def getApplication(request, pk):
     except Application.DoesNotExist:
         return Response("Заявки с таким id нет")
 
-@api_view(['GET'])
-def getSubscriptionsFromApplication(request, pk):
-    try:
-        application = Application.objects.get(pk=pk)
-        if application.status == "Удалено":
-            return Response("Заявки с таким id нет")
-
-        application_subscriptions = ApplicationSubscription.objects.filter(id_application=application)
-        serializer = ApplicationSubscriptionSerializer(application_subscriptions, many=True)
-        return Response(serializer.data)
-    except Application.DoesNotExist:
-        return Response("Заявки с таким id нет")
 
 @api_view(['DELETE'])
 def DeleteApplication(request, pk):

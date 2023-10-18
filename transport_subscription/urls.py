@@ -23,7 +23,6 @@ urlpatterns = [
     
     path('applications', views.getApplications, name = 'applications-list'),
     path('applications/<int:pk>', views.getApplication, name = 'application'),
-    path('subscriptions_from_application/<int:pk>', views.getSubscriptionsFromApplication, name = 'subscriptions_from_application'),
     path('applications/<int:pk>/delete', views.DeleteApplication, name = 'application_delete'),
     path('applications/<int:pk>/put', views.PutApplication, name = 'application_put'),
 
