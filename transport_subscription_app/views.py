@@ -78,14 +78,19 @@ def deleteСategory(request, pk):
 @api_view(['GET'])
 def getSubscriptions(request):
     value = request.query_params.get("value")
-    application_id = request.query_params.get("application")
-
+    flag = request.query_params.get("flag")
+    print(flag)
     if value:
         subscriptions = Subscription.objects.filter(status="enabled", id_category__title__icontains=value)
     else:
         subscriptions = Subscription.objects.filter(status="enabled")
-
-    if application_id:
+    if flag == 'basket':
+        current_user = CurrentUserSingleton.get_instance()
+        try: 
+            application_id = Application.objects.filter(id_user=current_user, status="Зарегистрирован").latest('creation_date')
+            print(application_id)
+        except:
+            return Response('У пользователя нет заявки')
         subscriptions_from_application = ApplicationSubscription.objects.filter(id_application=application_id)
         serializer = ApplicationSubscriptionSerializer(subscriptions_from_application, many=True)
         result = [item for item in subscriptions.values() if item['id'] in subscriptions_from_application.values_list('id_subscription', flat=True)]
@@ -258,19 +263,6 @@ def putApplicationByAdmin(request, pk):
     application.save()
     serializer = ApplicationSerializer(application)
     return Response(serializer.data)
-
-# @api_view(['PUT'])
-# def putApplicationByUser(request, pk):
-#     if not Application.objects.filter(pk=pk).exists():
-#         return Response(f"Заявки с таким id нет")
-#     application = Application.objects.get(pk=pk)
-#     if application.status != "Зарегистрирован":
-#         return Response("Такой заявки не зарегистрировано")
-#     application.status = "Проверяется"
-#     application.processed_at=datetime.now().date()
-#     application.save()
-#     serializer = ApplicationSerializer(application)
-#     return Response(serializer.data)
 
 @api_view(['PUT'])
 def putApplicationByUser(request):
