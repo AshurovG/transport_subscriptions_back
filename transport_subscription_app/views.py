@@ -75,18 +75,6 @@ def deleteСategory(request, pk):
 
 #Subscriptions
 
-# @api_view(['GET'])
-# def getSubscriptions(request):
-#     value = request.query_params.get('value')
-
-#     if value:
-#         subscriptions = Subscription.objects.filter(status="enabled", name__icontains=value)
-#     else:
-#         subscriptions = Subscription.objects.filter(status="enabled")
-
-#     serializer = SubscriptionSerializer(subscriptions, many=True)
-#     return Response(serializer.data)
-
 @api_view(['GET'])
 def getSubscriptions(request):
     value = request.query_params.get("value")
@@ -98,18 +86,6 @@ def getSubscriptions(request):
 
     serializer = SubscriptionSerializer(subscriptions, many=True)
     return Response(serializer.data)
-
-# @api_view(['GET'])
-# def getSubscriptions(request):
-#     value = request.query_params.get("value")
-
-#     if value:
-#         subscriptions = Subscription.objects.filter(status="enabled", title__icontains=value)
-#     else:
-#         subscriptions = Subscription.objects.filter(status="enabled")
-
-#     serializer = SubscriptionSerializer(subscriptions, many=True)
-#     return Response(serializer.data)
 
 @api_view(['Get'])
 def getSubscriptionById(request, pk):
@@ -275,16 +251,28 @@ def putApplicationByAdmin(request, pk):
     serializer = ApplicationSerializer(application)
     return Response(serializer.data)
 
+# @api_view(['PUT'])
+# def putApplicationByUser(request, pk):
+#     if not Application.objects.filter(pk=pk).exists():
+#         return Response(f"Заявки с таким id нет")
+#     application = Application.objects.get(pk=pk)
+#     if application.status != "Зарегистрирован":
+#         return Response("Такой заявки не зарегистрировано")
+#     application.status = "Проверяется"
+#     application.processed_at=datetime.now().date()
+#     application.save()
+#     serializer = ApplicationSerializer(application)
+#     return Response(serializer.data)
+
 @api_view(['PUT'])
-def putApplicationByUser(request, pk):
-    if not Application.objects.filter(pk=pk).exists():
-        return Response(f"Заявки с таким id нет")
-    application = Application.objects.get(id=pk)
-    if application.status != "Зарегистрирован":
+def putApplicationByUser(request):
+    current_user = CurrentUserSingleton.get_instance()
+    try:
+        application = get_object_or_404(Application, id_user=current_user, status="Зарегистрирован")
+    except:
         return Response("Такой заявки не зарегистрировано")
-    if request.data["status"] not in ["Удалено", "Проверяется"]:
-        return Response("Неверный статус!")
-    application.status = request.data["status"]
+    
+    application.status = "Проверяется"
     application.processed_at=datetime.now().date()
     application.save()
     serializer = ApplicationSerializer(application)

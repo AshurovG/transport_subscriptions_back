@@ -27,7 +27,7 @@ urlpatterns = [
     path('applications/<int:pk>/put', views.PutApplication, name = 'application_put'),
 
     path('applications/<int:pk>/adminput', views.putApplicationByAdmin, name = 'application_by_admin'),
-    path('applications/<int:pk>/userput', views.putApplicationByUser, name = 'application_by_user'),
+    path('applications/userput', views.putApplicationByUser, name = 'application_by_user'),
 
     path('application_subscription/<int:pk>/put', views.PutApplicationSubscription, name = 'application_subscription_put'),
     path('application_subscription/<int:pk>/delete', views.DeleteApplicationSubscription, name = 'application_subscription_delete'),
