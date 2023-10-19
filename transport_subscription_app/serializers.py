@@ -21,8 +21,8 @@ class ApplicationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ApplicationSubscriptionSerializer(serializers.ModelSerializer):
-    id_subscription = serializers.StringRelatedField(read_only=True)
-    id_application = serializers.StringRelatedField(read_only=True)
+    # id_subscription = serializers.StringRelatedField(read_only=True)
+    # id_application = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = ApplicationSubscription

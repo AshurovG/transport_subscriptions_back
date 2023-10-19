@@ -78,14 +78,22 @@ def deleteСategory(request, pk):
 @api_view(['GET'])
 def getSubscriptions(request):
     value = request.query_params.get("value")
+    application_id = request.query_params.get("application")
 
     if value:
         subscriptions = Subscription.objects.filter(status="enabled", id_category__title__icontains=value)
     else:
         subscriptions = Subscription.objects.filter(status="enabled")
 
+    if application_id:
+        subscriptions_from_application = ApplicationSubscription.objects.filter(id_application=application_id)
+        serializer = ApplicationSubscriptionSerializer(subscriptions_from_application, many=True)
+        result = [item for item in subscriptions.values() if item['id'] in subscriptions_from_application.values_list('id_subscription', flat=True)]
+        return Response(result)
+
     serializer = SubscriptionSerializer(subscriptions, many=True)
-    return Response(serializer.data)
+    result = serializer.data
+    return Response(result)
 
 @api_view(['Get'])
 def getSubscriptionById(request, pk):
@@ -190,8 +198,8 @@ def getApplications(request):
 @api_view(['GET'])
 def getApplication(request, pk):
     try:
-        application = Application.objects.get(pk=pk)
-        if application.status == "Удалено":
+        application = Application.ofbjects.get(pk=pk)
+        if application.status == "Удалено" or not application:
             return Response("Заявки с таким id нет")
 
         application_serializer = ApplicationSerializer(application)
