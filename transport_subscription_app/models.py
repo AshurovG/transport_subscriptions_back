@@ -53,7 +53,7 @@ class Category(models.Model):
 class Subscription(models.Model):
     id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=50, default='')
-    price = models.TextField(default='')
+    price = models.IntegerField(default=0)
     info = models.TextField(default='')
     src = models.TextField(default='')
     id_category = models.ForeignKey('Category', models.DO_NOTHING, db_column='id_category', blank=True, null=True, related_name='subscription')

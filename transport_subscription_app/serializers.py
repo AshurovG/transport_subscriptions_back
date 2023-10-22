@@ -4,6 +4,8 @@ from datetime import datetime
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
+    category = serializers.CharField(source='id_category.title', read_only=True)
+    
     class Meta:
         model = Subscription
         fields = "__all__"
@@ -23,7 +25,6 @@ class ApplicationSerializer(serializers.ModelSerializer):
 class ApplicationSubscriptionSerializer(serializers.ModelSerializer):
     # id_subscription = serializers.StringRelatedField(read_only=True)
     # id_application = serializers.StringRelatedField(read_only=True)
-
     class Meta:
         model = ApplicationSubscription
         fields = "__all__"

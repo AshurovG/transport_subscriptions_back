@@ -54,6 +54,22 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'ALLOWED_METHODS': ('GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'),
+}
+
 CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = 'transport_subscription.urls'

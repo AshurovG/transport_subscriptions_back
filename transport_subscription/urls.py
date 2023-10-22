@@ -12,6 +12,7 @@ urlpatterns = [
     path('categories/<int:pk>', views.getCategoryById, name='categories-by-id'),
     path('categories/post', views.postСategory, name='categories-post'),
     path('categories/<int:pk>/put', views.putСategory, name='categories-put'),
+    # path('categories/<int:pk>', views.putСategory, name='categories-put'),
     path('categories/<int:pk>/delete', views.deleteСategory, name='categories-delete'),
 
     path('subscriptions', views.getSubscriptions, name='subscriptions-list'),

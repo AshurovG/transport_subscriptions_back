@@ -61,6 +61,22 @@ def putСategory(request, pk):
         return Response(serializer.data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+#  НЕ РАБОТАЕТ !!!
+# @api_view(['PUT'])
+# def putСategory(request, pk):
+#     if request.method == 'PUT':
+#         if not Category.objects.filter(pk=pk).exists():
+#             return Response(f"Категории с таким id нет")
+#         category = get_object_or_404(Category, pk=pk)
+#         serializer = CategorySerializer(category, data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#     else:
+#         return Response("Метод запроса должен быть PUT")
+
 @api_view(['DELETE'])
 def deleteСategory(request, pk):    
     if not Category.objects.filter(pk=pk).exists():
@@ -77,13 +93,20 @@ def deleteСategory(request, pk):
 
 @api_view(['GET'])
 def getSubscriptions(request):
-    value = request.query_params.get("value")
+    category = request.query_params.get("category")
+    title = request.query_params.get("title")
+    min_price = request.query_params.get("min_price")
     flag = request.query_params.get("flag")
-    print(flag)
-    if value:
-        subscriptions = Subscription.objects.filter(status="enabled", id_category__title__icontains=value)
-    else:
-        subscriptions = Subscription.objects.filter(status="enabled")
+
+    subscriptions = Subscription.objects.filter(status="enabled")
+
+    if category:
+        subscriptions = subscriptions.filter(id_category__title__icontains=category)
+    if title:
+        subscriptions = subscriptions.filter(title__icontains=title)
+    if min_price:
+        subscriptions = subscriptions.filter(price__gte=min_price)
+
     if flag == 'basket':
         current_user = CurrentUserSingleton.get_instance()
         try: 
