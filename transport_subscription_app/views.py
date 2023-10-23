@@ -95,7 +95,7 @@ def deleteСategory(request, pk):
 def getSubscriptions(request):
     category = request.query_params.get("category")
     title = request.query_params.get("title")
-    min_price = request.query_params.get("min_price")
+    max_price = request.query_params.get("max_price")
     flag = request.query_params.get("flag")
 
     subscriptions = Subscription.objects.filter(status="enabled")
@@ -104,8 +104,8 @@ def getSubscriptions(request):
         subscriptions = subscriptions.filter(id_category__title__icontains=category)
     if title:
         subscriptions = subscriptions.filter(title__icontains=title)
-    if min_price:
-        subscriptions = subscriptions.filter(price__gte=min_price)
+    if max_price:
+        subscriptions = subscriptions.filter(price__lte=max_price)
 
     if flag == 'basket':
         current_user = CurrentUserSingleton.get_instance()
