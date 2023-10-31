@@ -106,7 +106,7 @@ WSGI_APPLICATION = 'transport_subscription.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'transport_subscription',
+        'NAME': 'transport_subs',
         'USER': 'georgy',
         'PASSWORD': '13082003',
         'HOST': 'localhost',

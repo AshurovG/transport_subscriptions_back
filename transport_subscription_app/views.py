@@ -96,7 +96,6 @@ def getSubscriptions(request):
     category = request.query_params.get("category")
     title = request.query_params.get("title")
     max_price = request.query_params.get("max_price")
-    flag = request.query_params.get("flag")
 
     subscriptions = Subscription.objects.filter(status="enabled")
 
@@ -107,21 +106,35 @@ def getSubscriptions(request):
     if max_price:
         subscriptions = subscriptions.filter(price__lte=max_price)
 
-    if flag == 'basket':
+    try: 
         current_user = CurrentUserSingleton.get_instance()
-        try: 
-            application_id = Application.objects.filter(id_user=current_user, status="Зарегистрирован").latest('creation_date')
-            print(application_id)
-        except:
-            return Response('У пользователя нет заявки')
-        subscriptions_from_application = ApplicationSubscription.objects.filter(id_application=application_id)
-        serializer = ApplicationSubscriptionSerializer(subscriptions_from_application, many=True)
-        result = [item for item in subscriptions.values() if item['id'] in subscriptions_from_application.values_list('id_subscription', flat=True)]
+        application = Application.objects.filter(id_user=current_user, status="Зарегистрирован").latest('creation_date')
+        serializer = SubscriptionSerializer(subscriptions, many=True)
+        application_serializer = ApplicationSerializer(application)
+        result = {
+            'application_id': application_serializer.data['id'],
+            'subscriptions': serializer.data
+        }
+        return Response(result)
+    except:
+        serializer = SubscriptionSerializer(subscriptions, many=True)
+        result = serializer.data
         return Response(result)
 
-    serializer = SubscriptionSerializer(subscriptions, many=True)
-    result = serializer.data
-    return Response(result)
+
+    # if flag == 'basket':
+        # current_user = CurrentUserSingleton.get_instance()
+        # try: 
+        #     application_id = Application.objects.filter(id_user=current_user, status="Зарегистрирован").latest('creation_date')
+    #         print(application_id)
+    #     except:
+    #         return Response('У пользователя нет заявки')
+    #     subscriptions_from_application = ApplicationSubscription.objects.filter(id_application=application_id)
+    #     serializer = ApplicationSubscriptionSerializer(subscriptions_from_application, many=True)
+    #     result = [item for item in subscriptions.values() if item['id'] in subscriptions_from_application.values_list('id_subscription', flat=True)]
+        # return Response(result)
+
+    
 
 @api_view(['Get'])
 def getSubscriptionById(request, pk):
@@ -226,13 +239,14 @@ def getApplications(request):
 @api_view(['GET'])
 def getApplication(request, pk):
     try:
-        application = Application.ofbjects.get(pk=pk)
+        application = Application.objects.get(pk=pk)
         if application.status == "Удалено" or not application:
             return Response("Заявки с таким id нет")
 
         application_serializer = ApplicationSerializer(application)
         application_subscriptions = ApplicationSubscription.objects.filter(id_application=application)
         application_subscriptions_serializer = ApplicationSubscriptionSerializer(application_subscriptions, many=True)
+        print(application_subscriptions)
 
         response_data = {
             'application': application_serializer.data,
@@ -244,7 +258,7 @@ def getApplication(request, pk):
         return Response("Заявки с таким id нет")
 
 
-@api_view(['DELETE'])
+@api_view(['DELETE']) # СДЕЛАТЬ ПРОВЕРКУ НА ПОЛЬЗОВАТЕЛЯ !!! ИЛИ МОЖЕТ ОБЪЕДЕНИТЬ В ОДИН PUT ???
 def DeleteApplication(request, pk):
     if not Application.objects.filter(pk=pk).exists():
         return Response(f"Заявки с таким id нет")
@@ -256,7 +270,7 @@ def DeleteApplication(request, pk):
     serializer = ApplicationSerializer(application, many=True)
     return Response(serializer.data)
 
-@api_view(['PUT']) # можно добавить фильтр на удаленную заявку
+@api_view(['PUT']) # НУЖНО ДОБАВИТЬ ФИЛЬТР НА УДАЛЕННУЮ ЗАЯВКУ !!! И ЗАЧЕМ ВООБЩЕ ЭТОТ PUT ???
 def PutApplication(request, pk):
     try:
         order = Application.objects.get(pk=pk)
@@ -300,34 +314,6 @@ def putApplicationByUser(request):
     application.save()
     serializer = ApplicationSerializer(application)
     return Response(serializer.data)
-
-@api_view(['PUT'])
-def PutApplicationSubscription(request, pk):
-    current_user = CurrentUserSingleton.get_instance()
-    application = get_object_or_404(Application, id_user=current_user, status="Зарегистрирован")
-    
-    try:
-        subscription = Subscription.objects.get(pk=pk, status='enabled')
-    except Subscription.DoesNotExist:
-        return Response("Такой услуги нет", status=400)
-    
-    application_subscription = ApplicationSubscription.objects.filter(id_application=application, id_subscription=subscription).first()
-    if application_subscription:
-        id_subscription = request.data.get('id_subscription')
-        try:
-            subscription = Subscription.objects.get(id=id_subscription, status='enabled')
-            application_subscription.id_subscription = subscription
-            application_subscription.save()
-            serializer = ApplicationSubscriptionSerializer(application_subscription, data=request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            else:
-                return Response(serializer.errors, status=400)
-        except Subscription.DoesNotExist:
-            return Response("Такой услуги нет", status=400)
-    else:
-        return Response("Заявка не найдена", status=404)
     
 @api_view(['DELETE'])
 def DeleteApplicationSubscription(request, pk):

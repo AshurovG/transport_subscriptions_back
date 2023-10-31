@@ -22,15 +22,14 @@ urlpatterns = [
     path('subscriptions/<int:pk>/delete', views.deleteSubscription, name='subscriptions-delete'),
     path('subscriptions/<int:pk>/post', views.PostSubscriptionToApplication, name = 'add_subscription_to_application'),
     
-    path('applications', views.getApplications, name = 'applications-list'),
-    path('applications/<int:pk>', views.getApplication, name = 'application'),
+    path('applications', views.getApplications, name = 'applications-list'), 
+    path('applications/<int:pk>', views.getApplication, name = 'application'), # Поменять название метода !!!
     path('applications/<int:pk>/delete', views.DeleteApplication, name = 'application_delete'),
     path('applications/<int:pk>/put', views.PutApplication, name = 'application_put'),
 
     path('applications/<int:pk>/adminput', views.putApplicationByAdmin, name = 'application_by_admin'),
     path('applications/userput', views.putApplicationByUser, name = 'application_by_user'),
 
-    path('application_subscription/<int:pk>/put', views.PutApplicationSubscription, name = 'application_subscription_put'),
     path('application_subscription/<int:pk>/delete', views.DeleteApplicationSubscription, name = 'application_subscription_delete'),
 
     path('admin/', admin.site.urls),

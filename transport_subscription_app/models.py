@@ -8,6 +8,7 @@ class User(models.Model):
 
     class Meta:
         db_table = 'user'
+        managed = True
 
 class Application(models.Model):
     STATUS_CHOICES = [
@@ -26,6 +27,7 @@ class Application(models.Model):
 
     class Meta:
         db_table = 'application'
+        managed = True
 
 class ApplicationSubscription(models.Model):
     id_application = models.ForeignKey('Application', models.DO_NOTHING, db_column='id_application')
@@ -36,6 +38,7 @@ class ApplicationSubscription(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['id_application', 'id_subscription'], name='composite_key')
         ]
+        managed = True
 
 
 class Category(models.Model):
@@ -49,6 +52,7 @@ class Category(models.Model):
 
     class Meta:
         db_table = 'category'
+        managed = True
 
 class Subscription(models.Model):
     id = models.AutoField(primary_key=True)
@@ -65,3 +69,4 @@ class Subscription(models.Model):
 
     class Meta:
         db_table = 'subscription'
+        managed = True
