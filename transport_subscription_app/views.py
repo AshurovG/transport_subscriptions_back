@@ -147,7 +147,10 @@ def getSubscriptionById(request, pk):
  
 @api_view(['POST'])
 def postSubscription(request):
-    serializer = SubscriptionSerializer(data=request.data)
+    data = request.data.copy()  # Создаем копию данных запроса
+    data['status'] = 'enabled'  # Устанавливаем значение "enabled" для поля "status"
+    
+    serializer = SubscriptionSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)

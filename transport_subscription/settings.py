@@ -106,8 +106,8 @@ WSGI_APPLICATION = 'transport_subscription.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'transport_subs',
-        'USER': 'georgy',
+        'NAME': 'transport_subscriptions',
+        'USER': 'ashurovgeorgy',
         'PASSWORD': '13082003',
         'HOST': 'localhost',
         'PORT': 5432, # Стандартный порт PostgreSQL
