@@ -7,6 +7,9 @@ from transport_subscription_app.serializers import *
 from transport_subscription_app.models import *
 from rest_framework.decorators import api_view
 from datetime import datetime
+from minio import Minio
+from rest_framework.parsers import FileUploadParser
+from rest_framework.decorators import parser_classes
 
 
 class CurrentUserSingleton: 
@@ -145,6 +148,18 @@ def getSubscriptionById(request, pk):
         serializer = SubscriptionSerializer(subscription)
         return Response(serializer.data)
  
+# @api_view(['POST'])
+# def postSubscription(request):
+#     data = request.data.copy()  # Создаем копию данных запроса
+#     data['status'] = 'enabled'  # Устанавливаем значение "enabled" для поля "status"
+    
+#     serializer = SubscriptionSerializer(data=data)
+#     if serializer.is_valid():
+#         serializer.save()
+#         return Response(serializer.data, status=status.HTTP_201_CREATED)
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(['POST'])
 def postSubscription(request):
     data = request.data.copy()  # Создаем копию данных запроса
@@ -152,9 +167,53 @@ def postSubscription(request):
     
     serializer = SubscriptionSerializer(data=data)
     if serializer.is_valid():
-        serializer.save()
+        new_option = serializer.save()
+        client = Minio(endpoint="localhost:9000",
+               access_key='minioadmin',
+               secret_key='minioadmin',
+               secure=False)
+        i=new_option.id-1
+        try:
+            i = new_option.id
+            img_obj_name = f"{i}.jpg"
+            file_path = f"assets/{request.data.get('src')}"  
+            client.fput_object(bucket_name='images',
+                            object_name=img_obj_name)
+                            # file_path=file_path)
+            new_option.src = f"localhost:9000/images/{img_obj_name}"
+            new_option.save()
+        except Exception as e:
+            return Response({"error": str(e)})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+# @api_view(['POST'])
+# @parser_classes([FileUploadParser])
+# def uploadFile(request):
+#     file = request.FILES.get('file')
+#     # Обрабатываем файл здесь, например, сохраняем его на сервере или выполняем другие операции
+#     return Response({'message': 'File uploaded successfully'}, status=status.HTTP_200_OK)
+
+# @api_view(['POST'])
+# @parser_classes([FileUploadParser])
+# def postImageToSubscription(request, pk):
+#     # file = request.FILES.get('file')
+#     f = request.FILES.get('file')
+#     print(f)
+
+@api_view(['POST'])
+@parser_classes([FileUploadParser])
+def postImageToSubscription(request, pk):
+    if 'file' in request.FILES:
+        file = request.FILES['file']
+        # Выполните необходимые операции с файлом (например, сохраните его на сервере)
+        # file.save('path/to/save/file.jpg')
+        print(file)
+
+        return HttpResponse('Image uploaded successfully.')
+
+    return HttpResponseBadRequest('Invalid request.')
+
 
 @api_view(['POST'])
 def PostSubscriptionToApplication(request, pk):

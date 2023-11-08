@@ -18,9 +18,10 @@ urlpatterns = [
     path('subscriptions', views.getSubscriptions, name='subscriptions-list'),
     path('subscriptions/<int:pk>', views.getSubscriptionById, name='subscriptions-by-id'),
     path('subscriptions/post', views.postSubscription, name='subscriptions-post'),
+    path('subscriptions/<int:pk>/post', views.postImageToSubscription, name="post-image-to-subscription"),
     path('subscriptions/<int:pk>/put', views.putSubscription, name='subscriptions-put'),
     path('subscriptions/<int:pk>/delete', views.deleteSubscription, name='subscriptions-delete'),
-    path('subscriptions/<int:pk>/post', views.PostSubscriptionToApplication, name = 'add_subscription_to_application'),
+    # path('subscriptions/<int:pk>/post', views.PostSubscriptionToApplication, name = 'add_subscription_to_application'),
     
     path('applications', views.getApplications, name = 'applications-list'), 
     path('applications/<int:pk>', views.getApplication, name = 'application'), # Поменять название метода !!!
