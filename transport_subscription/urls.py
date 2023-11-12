@@ -2,8 +2,25 @@ from django.contrib import admin
 from django.urls import include, path
 from transport_subscription_app import views
 from rest_framework import routers
+from rest_framework import permissions
+from django.urls import path, include
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 
 router = routers.DefaultRouter()
+
+schema_view = get_schema_view(
+   openapi.Info(
+      title="Snippets API",
+      default_version='v1',
+      description="Test description",
+      terms_of_service="https://www.google.com/policies/terms/",
+      contact=openapi.Contact(email="contact@snippets.local"),
+      license=openapi.License(name="BSD License"),
+   ),
+   public=True,
+   permission_classes=(permissions.AllowAny,),
+)
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -18,10 +35,10 @@ urlpatterns = [
     path('subscriptions', views.getSubscriptions, name='subscriptions-list'),
     path('subscriptions/<int:pk>', views.getSubscriptionById, name='subscriptions-by-id'),
     path('subscriptions/post', views.postSubscription, name='subscriptions-post'),
-    path('subscriptions/<int:pk>/post', views.postImageToSubscription, name="post-image-to-subscription"),
+    path('subscriptions/<int:pk>/image/post', views.postImageToSubscription, name="post-image-to-subscription"),
     path('subscriptions/<int:pk>/put', views.putSubscription, name='subscriptions-put'),
     path('subscriptions/<int:pk>/delete', views.deleteSubscription, name='subscriptions-delete'),
-    # path('subscriptions/<int:pk>/post', views.PostSubscriptionToApplication, name = 'add_subscription_to_application'),
+    path('subscriptions/<int:pk>/post', views.PostSubscriptionToApplication, name = 'add_subscription_to_application'),
     
     path('applications', views.getApplications, name = 'applications-list'), 
     path('applications/<int:pk>', views.getApplication, name = 'application'), # Поменять название метода !!!
@@ -33,5 +50,5 @@ urlpatterns = [
 
     path('application_subscription/<int:pk>/delete', views.DeleteApplicationSubscription, name = 'application_subscription_delete'),
 
-    path('admin/', admin.site.urls),
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 ]
