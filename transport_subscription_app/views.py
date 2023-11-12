@@ -191,42 +191,6 @@ def postSubscription(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-# @api_view(['POST'])
-# @parser_classes([MultiPartParser])
-# def postImageToSubscription(request, pk):
-#     if 'file' in request.FILES:
-#         file = request.FILES['file']
-#         subscription = Subscription.objects.get(pk=pk, status='enabled')
-        
-#         client = Minio(endpoint="localhost:9000",
-#                        access_key='minioadmin',
-#                        secret_key='minioadmin',
-#                        secure=False)
-
-#         bucket_name = 'images'
-#         file_name = file.name
-#         file_path = "localhost:9000/images/" + file_name
-#         serializer = SubscriptionSerializer(data=subscription)
-        
-#         try:
-#             client.put_object(bucket_name, file_name, file, length=file.size, content_type=file.content_type)
-#             print("Файл успешно загружен в Minio.")
-#             print(serializer)
-#             if serializer.is_valid():
-#                 new_subscription = serializer.save()
-#                 new_subscription.src = file_path
-#                 new_subscription.save()
-#                 return HttpResponse('Image uploaded successfully.')
-#             else:
-#                 return HttpResponseBadRequest('Invalid data.')
-#         except Exception as e:
-#             print("Ошибка при загрузке файла в Minio:", str(e))
-#             return HttpResponseServerError('An error occurred during file upload.')
-
-#     return HttpResponseBadRequest('Invalid request.')
-
-
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
 def postImageToSubscription(request, pk):
