@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.shortcuts import *
 from rest_framework.response import Response
+from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from transport_subscription_app.serializers import *
@@ -10,6 +11,9 @@ from datetime import datetime
 from minio import Minio
 from rest_framework.parsers import FileUploadParser
 from rest_framework.decorators import parser_classes
+from django.http import HttpResponseServerError
+import os
+from rest_framework.parsers import MultiPartParser
 
 
 class CurrentUserSingleton: 
@@ -186,31 +190,38 @@ def postSubscription(request):
             return Response({"error": str(e)})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-# @api_view(['POST'])
-# @parser_classes([FileUploadParser])
-# def uploadFile(request):
-#     file = request.FILES.get('file')
-#     # Обрабатываем файл здесь, например, сохраняем его на сервере или выполняем другие операции
-#     return Response({'message': 'File uploaded successfully'}, status=status.HTTP_200_OK)
 
-# @api_view(['POST'])
-# @parser_classes([FileUploadParser])
-# def postImageToSubscription(request, pk):
-#     # file = request.FILES.get('file')
-#     f = request.FILES.get('file')
-#     print(f)
 
 @api_view(['POST'])
-@parser_classes([FileUploadParser])
+@parser_classes([MultiPartParser])
 def postImageToSubscription(request, pk):
     if 'file' in request.FILES:
         file = request.FILES['file']
-        # Выполните необходимые операции с файлом (например, сохраните его на сервере)
-        # file.save('path/to/save/file.jpg')
-        print(file)
+        subscription = Subscription.objects.get(pk=pk, status='enabled')
+        serializer = SubscriptionSerializer(data=subscription)
+        print(serializer)
+        print(file.name)
+        client = Minio(endpoint="localhost:9000",
+                       access_key='minioadmin',
+                       secret_key='minioadmin',
+                       secure=False)
 
-        return HttpResponse('Image uploaded successfully.')
+        bucket_name = 'images'
+        file_name = file.name
+        file_path = "localhost:9000/images/" + file_name
+        # print()
+        
+        try:
+            client.put_object(bucket_name, file_name, file, length=file.size, content_type=file.content_type)
+            print("Файл успешно загружен в Minio.")
+            if serializer.is_valid():
+                new_option = serializer.save()
+                new_option.src = file_path
+                new_option.save()
+            return HttpResponse('Image uploaded successfully.')
+        except Exception as e:
+            print("Ошибка при загрузке файла в Minio:", str(e))
+            return HttpResponseServerError('An error occurred during file upload.')
 
     return HttpResponseBadRequest('Invalid request.')
 
