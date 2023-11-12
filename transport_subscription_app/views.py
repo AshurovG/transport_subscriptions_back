@@ -30,8 +30,6 @@ class CurrentUserSingleton:
         return User.objects.get(login='user1', password='1234', isModerator=False)
     
 
-# user = User(id=2, login="user1", password='1234', isModerator=False)
-
 #Categories
 
 @api_view(['GET'])
@@ -67,22 +65,6 @@ def putСategory(request, pk):
         serializer.save()
         return Response(serializer.data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-#  НЕ РАБОТАЕТ !!!
-# @api_view(['PUT'])
-# def putСategory(request, pk):
-#     if request.method == 'PUT':
-#         if not Category.objects.filter(pk=pk).exists():
-#             return Response(f"Категории с таким id нет")
-#         category = get_object_or_404(Category, pk=pk)
-#         serializer = CategorySerializer(category, data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#     else:
-#         return Response("Метод запроса должен быть PUT")
 
 @api_view(['DELETE'])
 def deleteСategory(request, pk):    
@@ -128,21 +110,6 @@ def getSubscriptions(request):
         result = serializer.data
         return Response(result)
 
-
-    # if flag == 'basket':
-        # current_user = CurrentUserSingleton.get_instance()
-        # try: 
-        #     application_id = Application.objects.filter(id_user=current_user, status="Зарегистрирован").latest('creation_date')
-    #         print(application_id)
-    #     except:
-    #         return Response('У пользователя нет заявки')
-    #     subscriptions_from_application = ApplicationSubscription.objects.filter(id_application=application_id)
-    #     serializer = ApplicationSubscriptionSerializer(subscriptions_from_application, many=True)
-    #     result = [item for item in subscriptions.values() if item['id'] in subscriptions_from_application.values_list('id_subscription', flat=True)]
-        # return Response(result)
-
-    
-
 @api_view(['Get'])
 def getSubscriptionById(request, pk):
     if not Subscription.objects.filter(pk=pk).exists():
@@ -151,18 +118,6 @@ def getSubscriptionById(request, pk):
     if request.method == 'GET':
         serializer = SubscriptionSerializer(subscription)
         return Response(serializer.data)
- 
-# @api_view(['POST'])
-# def postSubscription(request):
-#     data = request.data.copy()  # Создаем копию данных запроса
-#     data['status'] = 'enabled'  # Устанавливаем значение "enabled" для поля "status"
-    
-#     serializer = SubscriptionSerializer(data=data)
-#     if serializer.is_valid():
-#         serializer.save()
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
-#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 @api_view(['POST'])
 def postSubscription(request):
@@ -395,20 +350,7 @@ def DeleteApplicationSubscription(request, pk):
             application_subscription = get_object_or_404(ApplicationSubscription, id_application=application, id_subscription=subscription)
             application_subscription.delete()
             return Response("Абонемент удален", status=200)
-            # application_subscription = ApplicationSubscription.objects.all()
-            # serializer = ApplicationSubscriptionSerializer(application_subscription, many=True)
-            # return Response(serializer.data)
         except ApplicationSubscription.DoesNotExist:
             return Response("Заявка не найдена", status=404)
     except Subscription.DoesNotExist:
         return Response("Такой услуги нет", status=400)
-    
-
-# {
-#   "title": "Тестовый абонемент",
-#   "price": "5000р.",
-#   "info": "Дополнительная информация об абонементе",
-#   "src": "images/mcd.jpg",
-#   "id_category": 1,
-#   "status": "enabled"
-# }
