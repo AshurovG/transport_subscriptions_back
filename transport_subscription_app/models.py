@@ -2,8 +2,11 @@ from django.db import models
 # from django.contrib.postgres.fields import ArrayField
 
 class User(models.Model):
-    login = models.CharField(max_length=100, default='', verbose_name='Логин')
-    password = models.CharField(max_length=100, default='', verbose_name='Пароль')
+    login = models.CharField(max_length=50, default='', verbose_name='Логин')
+    email = models.CharField(max_length=50, default='', verbose_name='Почта')
+    full_name = models.CharField(max_length=50, default='', verbose_name='ФИО')
+    phone_number = models.CharField(max_length=30, default='', verbose_name='Номер телефона')
+    password = models.CharField(max_length=30, default='', verbose_name='Пароль')
     isModerator = models.BooleanField(default=False, verbose_name='Является модератором')
 
     class Meta:
@@ -27,7 +30,7 @@ class Application(models.Model):
 
     class Meta:
         db_table = 'application'
-        managed = True
+        managed = False
 
 class ApplicationSubscription(models.Model):
     id_application = models.ForeignKey('Application', models.DO_NOTHING, db_column='id_application')
@@ -38,7 +41,7 @@ class ApplicationSubscription(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['id_application', 'id_subscription'], name='composite_key')
         ]
-        managed = True
+        managed = False
 
 
 class Category(models.Model):
@@ -52,7 +55,7 @@ class Category(models.Model):
 
     class Meta:
         db_table = 'category'
-        managed = True
+        managed = False
 
 class Subscription(models.Model):
     id = models.AutoField(primary_key=True)
@@ -69,4 +72,4 @@ class Subscription(models.Model):
 
     class Meta:
         db_table = 'subscription'
-        managed = True
+        managed = False

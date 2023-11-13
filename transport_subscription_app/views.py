@@ -1,6 +1,5 @@
 from django.shortcuts import render
 from django.shortcuts import *
-from rest_framework.response import Response
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -14,6 +13,12 @@ from rest_framework.decorators import parser_classes
 from django.http import HttpResponseServerError
 import os
 from rest_framework.parsers import MultiPartParser
+from django.contrib.auth import authenticate, login
+from django.http import HttpResponse
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 
 class CurrentUserSingleton: 
@@ -354,3 +359,28 @@ def DeleteApplicationSubscription(request, pk):
             return Response("Заявка не найдена", status=404)
     except Subscription.DoesNotExist:
         return Response("Такой услуги нет", status=400)
+    
+
+#Auth
+
+@api_view(['DELETE'])
+def Auth(request):
+    login = request.POST["login"] # допустим передали login и password
+    password = request.POST["password"]
+    user = authenticate(request, login=login, password=password)
+    if user is not None:
+        login(request, user)
+        return HttpResponse("{'status': 'ok'}")
+    else:
+        return HttpResponse("{'status': 'error', 'error': 'login failed'}")
+    
+class ExampleView(APIView):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        content = {
+            'user': str(request.user),  # `django.contrib.auth.User` instance.
+            'auth': str(request.auth),  # None
+        }
+        return Response(content)

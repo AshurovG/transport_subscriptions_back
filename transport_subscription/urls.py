@@ -50,5 +50,7 @@ urlpatterns = [
 
     path('application_subscription/<int:pk>/delete', views.DeleteApplicationSubscription, name = 'application_subscription_delete'),
 
+    path('authorize', views.Auth, name = 'authorize'),
+
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 ]
