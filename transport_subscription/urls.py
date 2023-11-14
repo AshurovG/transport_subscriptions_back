@@ -7,6 +7,7 @@ from django.urls import path, include
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
+
 router = routers.DefaultRouter()
 
 schema_view = get_schema_view(
@@ -21,6 +22,8 @@ schema_view = get_schema_view(
    public=True,
    permission_classes=(permissions.AllowAny,),
 )
+
+router.register(r'user', views.UserViewSet, basename='user')
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -50,7 +53,10 @@ urlpatterns = [
 
     path('application_subscription/<int:pk>/delete', views.DeleteApplicationSubscription, name = 'application_subscription_delete'),
 
-    path('authorize', views.Auth, name = 'authorize'),
+   #  path('authorize', views.Auth, name = 'authorize'),
 
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('login',  views.login_view, name='login'),
+    path('logout', views.logout_view, name='logout'),
 ]
