@@ -19,7 +19,7 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 
 
 class CurrentUserSingleton: 
@@ -117,6 +117,8 @@ def getSubscriptions(request):
         return Response(result)
 
 @api_view(['Get'])
+@authentication_classes([SessionAuthentication, BasicAuthentication])
+# @permission_classes([IsAuthenticatedOrReadOnly])
 def getSubscriptionById(request, pk):
     if not Subscription.objects.filter(pk=pk).exists():
         return Response(f"Абонемента с таким id нет")
@@ -438,10 +440,10 @@ class UserViewSet(viewsets.ModelViewSet):
     authentication_classes = [SessionAuthentication, BasicAuthentication]
     ...
 
-class StockList(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
-    ...
+# class StockList(APIView):
+#     authentication_classes = [SessionAuthentication, BasicAuthentication]
+#     ...
 
-class StockDetail(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
-    ...
+# class StockDetail(APIView):
+#     authentication_classes = [SessionAuthentication, BasicAuthentication]
+#     ...
