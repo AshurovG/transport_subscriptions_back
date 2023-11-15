@@ -9,7 +9,7 @@ from transport_subscription_app.models import *
 from datetime import datetime
 from minio import Minio
 from rest_framework.parsers import FileUploadParser
-from rest_framework.decorators import api_view, parser_classes, permission_classes, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, parser_classes, permission_classes, authentication_classes, permission_classes, action
 from django.http import HttpResponseServerError
 import os
 from rest_framework.parsers import MultiPartParser
@@ -20,6 +20,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.viewsets import ModelViewSet
+from django.views.decorators.csrf import csrf_exempt
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 
 
 class CurrentUserSingleton: 
@@ -388,8 +392,27 @@ def DeleteApplicationSubscription(request, pk):
 #         }
 #         return Response(content)
    
+# @permission_classes([AllowAny])
+# @authentication_classes([])
+# def login_view(request):
+#     email = request.POST["email"] # допустим передали username и password
+#     password = request.POST["password"]
+#     user = authenticate(request, email=email, password=password)
+#     if user is not None:
+#         login(request, user)
+#         return HttpResponse("{'status': 'ok'}")
+#     else:
+#         return HttpResponse("{'status': 'error', 'error': 'login failed'}")
+
+# def logout_view(request):
+#     logout(request._request)
+#     return Response({'status': 'Success'})
+
 @permission_classes([AllowAny])
 @authentication_classes([])
+@csrf_exempt
+@swagger_auto_schema(method='post', request_body=UserSerializer)
+@api_view(['Post'])
 def login_view(request):
     email = request.POST["email"] # допустим передали username и password
     password = request.POST["password"]
@@ -404,6 +427,7 @@ def logout_view(request):
     logout(request._request)
     return Response({'status': 'Success'})
 
+
 class UserViewSet(viewsets.ModelViewSet):
     """Класс, описывающий методы работы с пользователями
     Осуществляет связь с таблицей пользователей в базе данных
@@ -411,6 +435,8 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     model_class = User
+    authentication_classes = []
+    permission_classes = [AllowAny]
 
     def create(self, request):
         """
@@ -422,23 +448,54 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             print(serializer.data)
-            self.model_class.objects.create_user(
-                                    login=serializer.data['login'],
-                                    email=serializer.data['email'],
-                                    password=serializer.data['password'],
-                                    full_name=serializer.data['full_name'],
-                                    phone_number=serializer.data['phone_number'],
-                                    isModerator=serializer.data['isModerator'])
-            return Response({'status': 'Success'}, status=200)
+            self.model_class.objects.create(
+                login=serializer.data['login'],
+                email=serializer.data['email'],
+                password=serializer.data['password'],
+                full_name=serializer.data['full_name'],
+                phone_number=serializer.data['phone_number'],
+                isModerator=serializer.data['isModerator']
+            )
+            return Response({'status': 'Success'})
         return Response({'status': 'Error', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-    
-@authentication_classes([])
-def login_view(request):
-    ...
 
-class UserViewSet(viewsets.ModelViewSet):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
-    ...
+
+
+# class UserViewSet(ModelViewSet):
+#     authentication_classes = [SessionAuthentication, BasicAuthentication]
+#     queryset = User.objects.all()
+#     serializer_class = UserSerializer
+#     model_class = User
+
+#     def create(self, request, *args, **kwargs):
+#         """
+#         Функция регистрации новых пользователей
+#         Если пользователя c указанным в request email ещё нет, в БД будет добавлен новый пользователь.
+#         """
+#         if self.model_class.objects.filter(email=request.data['email']).exists():
+#             return Response({'status': 'Exist'}, status=400)
+
+#         serializer = self.serializer_class(data=request.data)
+#         if serializer.is_valid():
+#             self.model_class.objects.create_user(
+#                 login=serializer.data['login'],
+#                 email=serializer.data['email'],
+#                 password=serializer.data['password'],
+#                 full_name=serializer.data['full_name'],
+#                 phone_number=serializer.data['phone_number'],
+#                 isModerator=serializer.data['isModerator']
+#             )
+#             return Response({'status': 'Success'}, status=200)
+
+#         return Response({'status': 'Error', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    
+# @authentication_classes([])
+# def login_view(request):
+#     ...
+
+# class UserViewSet(viewsets.ModelViewSet):
+#     authentication_classes = [SessionAuthentication, BasicAuthentication]
+#     ...
 
 # class StockList(APIView):
 #     authentication_classes = [SessionAuthentication, BasicAuthentication]
