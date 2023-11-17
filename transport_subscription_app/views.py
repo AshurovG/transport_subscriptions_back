@@ -347,6 +347,7 @@ def putApplicationByAdmin(request, pk):
     return Response(serializer.data)
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def putApplicationByUser(request):
     current_user = CurrentUserSingleton.get_instance()
     try:
@@ -361,6 +362,7 @@ def putApplicationByUser(request):
     return Response(serializer.data)
     
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def DeleteApplicationSubscription(request, pk):
     current_user = CurrentUserSingleton.get_instance()
     application = get_object_or_404(Application, id_user=current_user, status="Зарегистрирован")
@@ -392,6 +394,7 @@ def login_view(request):
     else:
         return HttpResponse("{'status': 'error', 'error': 'login failed'}")
 
+@permission_classes([IsAuthenticated])
 def logout_view(request):
     logout(request._request)
     return Response({'status': 'Success'})

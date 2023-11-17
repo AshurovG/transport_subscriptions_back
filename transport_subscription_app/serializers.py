@@ -16,8 +16,6 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class ApplicationSerializer(serializers.ModelSerializer):
-    # publication_date = serializers.DateTimeField(default=datetime.now)
-
     class Meta:
         model = Application
         fields = '__all__'
