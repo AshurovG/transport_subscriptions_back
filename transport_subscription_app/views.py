@@ -37,14 +37,15 @@ class CurrentUserSingleton:
  
     @classmethod 
     def _get_user(cls): 
-        return CustomUser.objects.get(login='user1', password='1234', isModerator=False)
+        return CustomUser.objects.get(email='test@mail.ru', password='pbkdf2_sha256$600000$PxEZbMzzP7Ixb2f8TULs5e$UB+lN2K7/gpblGhsncTxQx7v8t0vMR4awzHEiOfIB1c=')
     
 
 #Categories
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 # @permission_classes([IsAdmin])
+# @permission_classes([IsManager])
 def getСategories(request):
     categories = Category.objects.filter(status="enabled")
     serializer = CategorySerializer(categories, many=True)
@@ -123,8 +124,6 @@ def getSubscriptions(request):
         return Response(result)
 
 @api_view(['Get'])
-@authentication_classes([SessionAuthentication, BasicAuthentication])
-# @permission_classes([IsAuthenticatedOrReadOnly])
 def getSubscriptionById(request, pk):
     if not Subscription.objects.filter(pk=pk).exists():
         return Response(f"Абонемента с таким id нет")
@@ -193,6 +192,7 @@ def postImageToSubscription(request, pk):
     return HttpResponseBadRequest('Invalid request.')
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def PostSubscriptionToApplication(request, pk):
     current_user = CurrentUserSingleton.get_instance()
     try: 
@@ -220,8 +220,6 @@ def PostSubscriptionToApplication(request, pk):
         application_subscription.save()
     application_subscription = ApplicationSubscription.objects.filter(id_application = id_application)
     serializer = ApplicationSubscriptionSerializer(application_subscription, many=True)
-    # applications = Application.objects.all()
-    # serializer = ApplicationSerializer(applications, many=True)
     return Response(serializer.data)
 
 @api_view(['PUT'])
@@ -275,7 +273,8 @@ def getApplications(request):
     
     return Response(serializer.data)
 
-@api_view(['GET'])
+@api_view(['GET']) # Желательно сделать чтобы выводились поля услуг а не м-м
+@permission_classes([IsAuthenticated])
 def getApplication(request, pk):
     try:
         application = Application.objects.get(pk=pk)
@@ -296,18 +295,26 @@ def getApplication(request, pk):
     except Application.DoesNotExist:
         return Response("Заявки с таким id нет")
 
-
-@api_view(['DELETE']) # СДЕЛАТЬ ПРОВЕРКУ НА ПОЛЬЗОВАТЕЛЯ !!! ИЛИ МОЖЕТ ОБЪЕДЕНИТЬ В ОДИН PUT ???
+@api_view(['DELETE']) # Делает проверку на пользователя и проверяет если ли у такого пользователя заявка с таким id=pk
+@permission_classes([IsAuthenticated])
 def DeleteApplication(request, pk):
-    if not Application.objects.filter(pk=pk).exists():
-        return Response(f"Заявки с таким id нет")
-    application = Application.objects.get(pk=pk)
-    application.status = "Удалено"
-    application.save()
+    current_user = CurrentUserSingleton.get_instance()
+    try: 
+        application = Application.objects.filter(id=pk, id_user=current_user, status="Зарегистрирован").latest('creation_date')
+        print(current_user.id)
+        if not Application.objects.filter(pk=pk).exists():
+            return Response(f"Заявки с таким id нет")
+        application = Application.objects.get(pk=pk)
+        application.status = "Удалено"
+        application.save()
 
-    application = Application.objects.all()
-    serializer = ApplicationSerializer(application, many=True)
-    return Response(serializer.data)
+        application = Application.objects.all()
+        serializer = ApplicationSerializer(application, many=True)
+        return Response(serializer.data)
+    except:
+        print('У данного пользователя нет заявки')
+        return Response("У данного пользователя нет заявки", status=400)
+    
 
 @api_view(['PUT']) # НУЖНО ДОБАВИТЬ ФИЛЬТР НА УДАЛЕННУЮ ЗАЯВКУ !!! И ЗАЧЕМ ВООБЩЕ ЭТОТ PUT ???
 def PutApplication(request, pk):
