@@ -31,7 +31,6 @@ urlpatterns = [
     path('categories/<int:pk>', views.getCategoryById, name='categories-by-id'),
     path('categories/post', views.postСategory, name='categories-post'),
     path('categories/<int:pk>/put', views.putСategory, name='categories-put'),
-    # path('categories/<int:pk>', views.putСategory, name='categories-put'),
     path('categories/<int:pk>/delete', views.deleteСategory, name='categories-delete'),
 
     path('subscriptions', views.getSubscriptions, name='subscriptions-list'),
@@ -52,9 +51,8 @@ urlpatterns = [
 
     path('application_subscription/<int:pk>/delete', views.DeleteApplicationSubscription, name = 'application_subscription_delete'),
 
-   #  path('authorize', views.Auth, name = 'authorize'),
-
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('login',  views.login_view, name='login'),
     path('logout', views.logout_view, name='logout'),

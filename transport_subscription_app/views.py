@@ -8,7 +8,6 @@ from transport_subscription_app.serializers import *
 from transport_subscription_app.models import *
 from datetime import datetime
 from minio import Minio
-from rest_framework.parsers import FileUploadParser
 from rest_framework.decorators import api_view, parser_classes, permission_classes, authentication_classes, permission_classes, action
 from django.http import HttpResponseServerError
 import os
@@ -333,7 +332,6 @@ def putApplicationByAdmin(request, pk):
     if application.status != "Проверяется":
         return Response("Такой заявки нет на проверке")
     if request.data["status"] not in ["Отказано", "Принято"]:
-        print(11111111)
         return Response("Неверный статус!")
     application.status = request.data["status"]
     application.publication_date=datetime.now().date()
@@ -414,87 +412,9 @@ class UserViewSet(viewsets.ModelViewSet):
             print(serializer.data)
             self.model_class.objects.create_user(email=serializer.data['email'],
                                      password=serializer.data['password'],
+                                     full_name=serializer.data['full_name'],
+                                     phone_number=serializer.data['phone_number'],
                                      is_superuser=serializer.data['is_superuser'],
                                      is_staff=serializer.data['is_staff'])
             return Response({'status': 'Success'}, status=200)
         return Response({'status': 'Error', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-# class UserViewSet(viewsets.ModelViewSet):
-#     # authentication_classes = [SessionAuthentication, BasicAuthentication] - возможно не нужно
-
-#     """Класс, описывающий методы работы с пользователями
-#     Осуществляет связь с таблицей пользователей в базе данных
-#     """
-#     queryset = CustomUser.objects.all()
-#     serializer_class = UserSerializer
-#     model_class = CustomUser
-    # authentication_classes = []
-    # permission_classes = [AllowAny]
-
-#     def create(self, request):
-#         """
-#         Функция регистрации новых пользователей
-#         Если пользователя c указанным в request email ещё нет, в БД будет добавлен новый пользователь.
-#         """
-#         if self.model_class.objects.filter(email=request.data['email']).exists():
-#             return Response({'status': 'Exist'}, status=400)
-#         serializer = self.serializer_class(data=request.data)
-#         if serializer.is_valid():
-#             print(serializer.data)
-#             self.model_class.objects.create(
-#                 login=serializer.data['login'],
-#                 email=serializer.data['email'],
-#                 password=serializer.data['password'],
-#                 full_name=serializer.data['full_name'],
-#                 phone_number=serializer.data['phone_number'],
-#                 is_superuser=serializer.data['is_superuser'],
-#                 is_staff=serializer.data['is_staff']
-#             )
-#             return Response({'status': 'Success'})
-#         return Response({'status': 'Error', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-# class UserViewSet(ModelViewSet):
-#     authentication_classes = [SessionAuthentication, BasicAuthentication]
-#     queryset = User.objects.all()
-#     serializer_class = UserSerializer
-#     model_class = User
-
-#     def create(self, request, *args, **kwargs):
-#         """
-#         Функция регистрации новых пользователей
-#         Если пользователя c указанным в request email ещё нет, в БД будет добавлен новый пользователь.
-#         """
-#         if self.model_class.objects.filter(email=request.data['email']).exists():
-#             return Response({'status': 'Exist'}, status=400)
-
-#         serializer = self.serializer_class(data=request.data)
-#         if serializer.is_valid():
-#             self.model_class.objects.create_user(
-#                 login=serializer.data['login'],
-#                 email=serializer.data['email'],
-#                 password=serializer.data['password'],
-#                 full_name=serializer.data['full_name'],
-#                 phone_number=serializer.data['phone_number'],
-#                 isModerator=serializer.data['isModerator']
-#             )
-#             return Response({'status': 'Success'}, status=200)
-
-#         return Response({'status': 'Error', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-    
-# @authentication_classes([])
-# def login_view(request):
-#     ...
-
-# class UserViewSet(viewsets.ModelViewSet):
-#     authentication_classes = [SessionAuthentication, BasicAuthentication]
-#     ...
-
-# class StockList(APIView):
-#     authentication_classes = [SessionAuthentication, BasicAuthentication]
-#     ...
-
-# class StockDetail(APIView):
-#     authentication_classes = [SessionAuthentication, BasicAuthentication]
-#     ...
