@@ -1,4 +1,3 @@
-from django.contrib import admin
 from django.urls import include, path
 from transport_subscription_app import views
 from rest_framework import routers

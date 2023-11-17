@@ -1,16 +1,55 @@
 from django.db import models
+# from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, Group, Permission, UserManager
+from django.contrib.auth.models import User, PermissionsMixin , UserManager, AbstractBaseUser
 # from django.contrib.postgres.fields import ArrayField
 
-class User(models.Model):
-    login = models.CharField(max_length=50, default='', verbose_name='Логин')
-    email = models.CharField(max_length=50, default='', verbose_name='Почта')
-    full_name = models.CharField(max_length=50, default='', verbose_name='ФИО')
-    phone_number = models.CharField(max_length=30, default='', verbose_name='Номер телефона')
-    password = models.CharField(max_length=30, default='', verbose_name='Пароль')
-    isModerator = models.BooleanField(default=False, verbose_name='Является модератором')
+# class NewUserManager(UserManager):
+#     def create_user(self,email,password=None, **extra_fields):
+#         if not email:
+#             raise ValueError('User must have an email address')
+#         email = self.normalize_email(email) 
+#         user = self.model(email=email, **extra_fields) 
+#         user.set_password(password)
+#         user.save(using=self.db)
+#         return user
+
+# class User(AbstractBaseUser, PermissionsMixin):
+#     login = models.CharField(max_length=50, default='', verbose_name='Логин', unique=True)
+#     email = models.EmailField(("email адрес"), unique=True)
+#     password = models.CharField(max_length=50, verbose_name="Пароль")  
+#     full_name = models.CharField(max_length=50, default='', verbose_name='ФИО')
+#     phone_number = models.CharField(max_length=30, default='', verbose_name='Номер телефона')
+#     is_staff = models.BooleanField(default=False, verbose_name="Является ли пользователь менеджером?")
+#     is_superuser = models.BooleanField(default=False, verbose_name="Является ли пользователь админом?")
+
+#     USERNAME_FIELD = 'email'
+
+#     objects =  NewUserManager()
+
+class NewUserManager(UserManager):
+    def create_user(self,email,password=None, **extra_fields):
+        if not email:
+            raise ValueError('User must have an email address')
+        
+        email = self.normalize_email(email) 
+        user = self.model(email=email, **extra_fields) 
+        user.set_password(password)
+        user.save(using=self.db)
+        return user
+    class Meta:
+        managed = True
+
+class CustomUser(AbstractBaseUser, PermissionsMixin):
+    email = models.EmailField(("email адрес"), unique=True)
+    password = models.CharField(max_length=150, verbose_name="Пароль")    
+    is_staff = models.BooleanField(default=False, verbose_name="Является ли пользователь менеджером?")
+    is_superuser = models.BooleanField(default=False, verbose_name="Является ли пользователь админом?")
+
+    USERNAME_FIELD = 'email'
+
+    objects =  NewUserManager()
 
     class Meta:
-        db_table = 'user'
         managed = True
 
 class Application(models.Model):
@@ -25,8 +64,8 @@ class Application(models.Model):
     creation_date = models.DateField(blank=True, null=True)
     approving_date = models.DateField(blank=True, null=True)
     publication_date = models.DateField(blank=True, null=True)
-    id_moderator = models.ForeignKey('User', on_delete=models.CASCADE,  db_column='id_moderator', related_name='moderator_application', blank=True, null=True)
-    id_user = models.ForeignKey('User', on_delete=models.CASCADE, db_column='id_user', related_name='user_application')
+    id_moderator = models.ForeignKey('CustomUser', on_delete=models.CASCADE,  db_column='id_moderator', related_name='moderator_application', blank=True, null=True)
+    id_user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, db_column='id_user', related_name='user_application')
 
     class Meta:
         db_table = 'application'
@@ -73,3 +112,4 @@ class Subscription(models.Model):
     class Meta:
         db_table = 'subscription'
         managed = False
+        

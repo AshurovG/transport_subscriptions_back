@@ -24,6 +24,7 @@ from rest_framework.viewsets import ModelViewSet
 from django.views.decorators.csrf import csrf_exempt
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from transport_subscription_app.permissions import *
 
 
 class CurrentUserSingleton: 
@@ -37,12 +38,14 @@ class CurrentUserSingleton:
  
     @classmethod 
     def _get_user(cls): 
-        return User.objects.get(login='user1', password='1234', isModerator=False)
+        return CustomUser.objects.get(login='user1', password='1234', isModerator=False)
     
 
 #Categories
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
+# @permission_classes([IsAdmin])
 def getСategories(request):
     categories = Category.objects.filter(status="enabled")
     serializer = CategorySerializer(categories, many=True)
@@ -369,45 +372,6 @@ def DeleteApplicationSubscription(request, pk):
     
 
 #Auth
-
-@api_view(['DELETE'])
-# def Auth(request):
-#     login = request.POST["login"] # допустим передали login и password
-#     password = request.POST["password"]
-#     user = authenticate(request, login=login, password=password)
-#     if user is not None:
-#         login(request, user)
-#         return HttpResponse("{'status': 'ok'}")
-#     else:
-#         return HttpResponse("{'status': 'error', 'error': 'login failed'}")
-    
-# class ExampleView(APIView):
-#     authentication_classes = [SessionAuthentication, BasicAuthentication]
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, format=None):
-#         content = {
-#             'user': str(request.user),  # `django.contrib.auth.User` instance.
-#             'auth': str(request.auth),  # None
-#         }
-#         return Response(content)
-   
-# @permission_classes([AllowAny])
-# @authentication_classes([])
-# def login_view(request):
-#     email = request.POST["email"] # допустим передали username и password
-#     password = request.POST["password"]
-#     user = authenticate(request, email=email, password=password)
-#     if user is not None:
-#         login(request, user)
-#         return HttpResponse("{'status': 'ok'}")
-#     else:
-#         return HttpResponse("{'status': 'error', 'error': 'login failed'}")
-
-# def logout_view(request):
-#     logout(request._request)
-#     return Response({'status': 'Success'})
-
 @permission_classes([AllowAny])
 @authentication_classes([])
 @csrf_exempt
@@ -432,9 +396,9 @@ class UserViewSet(viewsets.ModelViewSet):
     """Класс, описывающий методы работы с пользователями
     Осуществляет связь с таблицей пользователей в базе данных
     """
-    queryset = User.objects.all()
+    queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
-    model_class = User
+    model_class = CustomUser
     authentication_classes = []
     permission_classes = [AllowAny]
 
@@ -448,16 +412,46 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             print(serializer.data)
-            self.model_class.objects.create(
-                login=serializer.data['login'],
-                email=serializer.data['email'],
-                password=serializer.data['password'],
-                full_name=serializer.data['full_name'],
-                phone_number=serializer.data['phone_number'],
-                isModerator=serializer.data['isModerator']
-            )
-            return Response({'status': 'Success'})
+            self.model_class.objects.create_user(email=serializer.data['email'],
+                                     password=serializer.data['password'],
+                                     is_superuser=serializer.data['is_superuser'],
+                                     is_staff=serializer.data['is_staff'])
+            return Response({'status': 'Success'}, status=200)
         return Response({'status': 'Error', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+# class UserViewSet(viewsets.ModelViewSet):
+#     # authentication_classes = [SessionAuthentication, BasicAuthentication] - возможно не нужно
+
+#     """Класс, описывающий методы работы с пользователями
+#     Осуществляет связь с таблицей пользователей в базе данных
+#     """
+#     queryset = CustomUser.objects.all()
+#     serializer_class = UserSerializer
+#     model_class = CustomUser
+    # authentication_classes = []
+    # permission_classes = [AllowAny]
+
+#     def create(self, request):
+#         """
+#         Функция регистрации новых пользователей
+#         Если пользователя c указанным в request email ещё нет, в БД будет добавлен новый пользователь.
+#         """
+#         if self.model_class.objects.filter(email=request.data['email']).exists():
+#             return Response({'status': 'Exist'}, status=400)
+#         serializer = self.serializer_class(data=request.data)
+#         if serializer.is_valid():
+#             print(serializer.data)
+#             self.model_class.objects.create(
+#                 login=serializer.data['login'],
+#                 email=serializer.data['email'],
+#                 password=serializer.data['password'],
+#                 full_name=serializer.data['full_name'],
+#                 phone_number=serializer.data['phone_number'],
+#                 is_superuser=serializer.data['is_superuser'],
+#                 is_staff=serializer.data['is_staff']
+#             )
+#             return Response({'status': 'Success'})
+#         return Response({'status': 'Error', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
