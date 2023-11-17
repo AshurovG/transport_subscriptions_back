@@ -59,8 +59,9 @@ def getCategoryById(request, pk, format=None):
     if request.method == 'GET':
         serializer = CategorySerializer(category)
         return Response(serializer.data)
- 
+
 @api_view(['POST'])
+@permission_classes([IsManager])
 def postСategory(request):
     serializer = CategorySerializer(data=request.data)
     if serializer.is_valid():
@@ -69,6 +70,7 @@ def postСategory(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['PUT'])
+@permission_classes([IsManager])
 def putСategory(request, pk):
     if not Category.objects.filter(pk=pk).exists():
         return Response(f"Категории с таким id нет")
@@ -80,6 +82,7 @@ def putСategory(request, pk):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
+@permission_classes([IsManager])
 def deleteСategory(request, pk):    
     if not Category.objects.filter(pk=pk).exists():
         return Response(f"Категории с таким id нет")
@@ -133,6 +136,7 @@ def getSubscriptionById(request, pk):
         return Response(serializer.data)
 
 @api_view(['POST'])
+@permission_classes([IsManager])
 def postSubscription(request):
     data = request.data.copy()  # Создаем копию данных запроса
     data['status'] = 'enabled'  # Устанавливаем значение "enabled" для поля "status"
@@ -161,6 +165,7 @@ def postSubscription(request):
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
+@permission_classes([IsManager])
 def postImageToSubscription(request, pk):
     if 'file' in request.FILES:
         file = request.FILES['file']
@@ -223,6 +228,7 @@ def PostSubscriptionToApplication(request, pk):
     return Response(serializer.data)
 
 @api_view(['PUT'])
+@permission_classes([IsManager])
 def putSubscription(request, pk):
     if not Subscription.objects.filter(pk=pk).exists():
         return Response(f"Абонемента с таким id нет")
@@ -234,6 +240,7 @@ def putSubscription(request, pk):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
+@permission_classes([IsManager])
 def deleteSubscription(request, pk):
     if not Subscription.objects.filter(pk=pk).exists():
         return Response(f"Абонемента с таким id нет")
@@ -251,6 +258,7 @@ def deleteSubscription(request, pk):
 from django.db.models import Q
 
 @api_view(['GET'])
+@permission_classes([IsManager])
 def getApplications(request):
     date_format = "%Y-%m-%d"
     start_date_str = request.query_params.get('start', '2023-01-01')
@@ -317,6 +325,7 @@ def DeleteApplication(request, pk):
     
 
 @api_view(['PUT']) # НУЖНО ДОБАВИТЬ ФИЛЬТР НА УДАЛЕННУЮ ЗАЯВКУ !!! И ЗАЧЕМ ВООБЩЕ ЭТОТ PUT ???
+@permission_classes([IsManager])
 def PutApplication(request, pk):
     try:
         order = Application.objects.get(pk=pk)
@@ -332,6 +341,7 @@ def PutApplication(request, pk):
     return Response(serializer.data)
 
 @api_view(['PUT'])
+@permission_classes([IsManager])
 def putApplicationByAdmin(request, pk):
     if not Application.objects.filter(pk=pk).exists():
         return Response(f"Заявки с таким id нет")
