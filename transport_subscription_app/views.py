@@ -206,7 +206,14 @@ def postImageToSubscription(request, pk):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def PostSubscriptionToApplication(request, pk):
-    current_user = CurrentUserSingleton.get_instance()
+    ssid = request.COOKIES["session_id"]
+    try:
+        email = session_storage.get(ssid).decode('utf-8')
+        current_user = CustomUser.objects.get(email=email)
+        print('id is', current_user.id)
+    except:
+        return Response('Сессия не найдена')
+    # current_user = CurrentUserSingleton.get_instance()
     try: 
         application = Application.objects.filter(id_user=current_user, status="Зарегистрирован").latest('creation_date')
     except:
