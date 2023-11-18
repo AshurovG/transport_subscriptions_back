@@ -117,9 +117,11 @@ def getSubscriptions(request):
         subscriptions = subscriptions.filter(title__icontains=title)
     if max_price:
         subscriptions = subscriptions.filter(price__lte=max_price)
-
-    try: 
-        current_user = CurrentUserSingleton.get_instance()
+    
+    ssid = request.COOKIES["session_id"]
+    try:
+        email = session_storage.get(ssid).decode('utf-8')
+        current_user = CustomUser.objects.get(email=email)
         application = Application.objects.filter(id_user=current_user, status="Зарегистрирован").latest('creation_date')
         serializer = SubscriptionSerializer(subscriptions, many=True)
         application_serializer = ApplicationSerializer(application)
@@ -210,10 +212,8 @@ def PostSubscriptionToApplication(request, pk):
     try:
         email = session_storage.get(ssid).decode('utf-8')
         current_user = CustomUser.objects.get(email=email)
-        print('id is', current_user.id)
     except:
         return Response('Сессия не найдена')
-    # current_user = CurrentUserSingleton.get_instance()
     try: 
         application = Application.objects.filter(id_user=current_user, status="Зарегистрирован").latest('creation_date')
     except:
@@ -271,9 +271,16 @@ def deleteSubscription(request, pk):
 
 from django.db.models import Q
 
+# @permission_classes([IsManager])
 @api_view(['GET'])
-@permission_classes([IsManager])
+@permission_classes([IsAuthenticated])
 def getApplications(request):
+    ssid = request.COOKIES["session_id"]
+    try:
+        email = session_storage.get(ssid).decode('utf-8')
+        current_user = CustomUser.objects.get(email=email)
+    except:
+        return Response('Сессия не найдена')
     date_format = "%Y-%m-%d"
     start_date_str = request.query_params.get('start', '2023-01-01')
     end_date_str = request.query_params.get('end', '2023-12-31')
@@ -282,10 +289,17 @@ def getApplications(request):
     
     status = request.data.get('status')
 
-    applications = Application.objects.filter(
-        ~Q(status="Удалено"),
-        creation_date__range=(start, end)
-    )
+    if current_user.is_superuser: # Модератор может смотреть заявки всех пользователей
+        applications = Application.objects.filter(
+            ~Q(status="Удалено"),
+            creation_date__range=(start, end)
+        )
+    else: # Авторизованный пользователь может смотреть только свои заявки
+        applications = Application.objects.filter(
+            ~Q(status="Удалено"),
+            id_user=current_user.id,
+            creation_date__range=(start, end)
+        )
     
     if status:
         applications = applications.filter(status=status)
@@ -298,22 +312,30 @@ def getApplications(request):
 @api_view(['GET']) # Желательно сделать чтобы выводились поля услуг а не м-м
 @permission_classes([IsAuthenticated])
 def getApplication(request, pk):
+    ssid = request.COOKIES["session_id"]
+    try:
+        email = session_storage.get(ssid).decode('utf-8')
+        current_user = CustomUser.objects.get(email=email)
+    except:
+        return Response('Сессия не найдена')
+    
     try:
         application = Application.objects.get(pk=pk)
         if application.status == "Удалено" or not application:
             return Response("Заявки с таким id нет")
-
         application_serializer = ApplicationSerializer(application)
-        application_subscriptions = ApplicationSubscription.objects.filter(id_application=application)
-        application_subscriptions_serializer = ApplicationSubscriptionSerializer(application_subscriptions, many=True)
-        print(application_subscriptions)
-
-        response_data = {
-            'application': application_serializer.data,
-            'subscriptions': application_subscriptions_serializer.data
-        }
-
-        return Response(response_data)
+        print(application_serializer.data['id_user'])
+        if (not current_user.is_superuser and current_user.id == application_serializer.data['id_user']) or (current_user.is_superuser):
+            application_subscriptions = ApplicationSubscription.objects.filter(id_application=application)
+            application_subscriptions_serializer = ApplicationSubscriptionSerializer(application_subscriptions, many=True)
+            # print(application_subscriptions)
+            response_data = {
+                'application': application_serializer.data,
+                'subscriptions': application_subscriptions_serializer.data
+            }
+            return Response(response_data)
+        else: 
+            return Response("Заявки с таким id нет")
     except Application.DoesNotExist:
         return Response("Заявки с таким id нет")
 
