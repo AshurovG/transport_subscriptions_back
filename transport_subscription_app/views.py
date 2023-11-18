@@ -24,7 +24,13 @@ from django.views.decorators.csrf import csrf_exempt
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from transport_subscription_app.permissions import *
+from django.conf import settings
+import redis
+import uuid
+from django.contrib.sessions.models import Session
 
+
+session_storage = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
 
 class CurrentUserSingleton: 
     _instance = None 
@@ -42,10 +48,11 @@ class CurrentUserSingleton:
 
 #Categories
 
-@api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 # @permission_classes([IsAdmin])
 # @permission_classes([IsManager])
+
+@api_view(['GET'])
 def getСategories(request):
     categories = Category.objects.filter(status="enabled")
     serializer = CategorySerializer(categories, many=True)
@@ -389,25 +396,52 @@ def DeleteApplicationSubscription(request, pk):
     
 
 #Auth
+# @permission_classes([AllowAny])
+# @authentication_classes([])
+# @csrf_exempt
+# @swagger_auto_schema(method='post', request_body=UserSerializer)
+# @api_view(['Post'])
+# def login_view(request):
+#     email = request.POST["email"] # допустим передали username и password
+#     password = request.POST["password"]
+#     user = authenticate(request, email=email, password=password)
+#     if user is not None:
+#         login(request, user)
+#         return HttpResponse("{'status': 'ok'}")
+#     else:
+#         return HttpResponse("{'status': 'error', 'error': 'login failed'}")
+
+@api_view(['POST'])
 @permission_classes([AllowAny])
 @authentication_classes([])
-@csrf_exempt
-@swagger_auto_schema(method='post', request_body=UserSerializer)
-@api_view(['Post'])
-def login_view(request):
-    email = request.POST["email"] # допустим передали username и password
+def auth_view(request):
+    print('auth !!!')
+    username = request.POST["email"] 
     password = request.POST["password"]
-    user = authenticate(request, email=email, password=password)
+    user = authenticate(request, email=username, password=password)
     if user is not None:
-        login(request, user)
-        return HttpResponse("{'status': 'ok'}")
+        random_key = str(uuid.uuid4())
+        session_storage.set(random_key, username)
+        print(random_key, username)
+        response = HttpResponse("{'status': 'ok'}")
+        response.set_cookie("session_id", random_key)
+        return response
     else:
         return HttpResponse("{'status': 'error', 'error': 'login failed'}")
 
+# logout(request._request)
+@api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def logout_view(request):
-    logout(request._request)
-    return Response({'status': 'Success'})
+    print('logout')
+    ssid = request.COOKIES["session_id"]
+    if session_storage.exists(ssid):
+        print('Такой ssid есть: ', ssid)
+        session_storage.delete(ssid)
+        response_data = {'status': 'Success'}
+    else:
+        response_data = {'status': 'Error', 'message': 'Session does not exist'}
+    return Response(response_data)
 
 
 class UserViewSet(viewsets.ModelViewSet):

@@ -158,6 +158,9 @@ USE_TZ = True
 
 AUTH_USER_MODEL = 'transport_subscription_app.CustomUser'
 
+REDIS_HOST = 'localhost'
+REDIS_PORT = 6379
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
