@@ -43,7 +43,8 @@ urlpatterns = [
     
     path('applications', views.getApplications, name = 'applications-list'), 
     path('applications/<int:pk>', views.getApplication, name = 'application'), # Поменять название метода !!!
-    path('applications/<int:pk>/delete', views.DeleteApplication, name = 'application_delete'),
+   #  path('applications/<int:pk>/delete', views.DeleteApplication, name = 'application_delete'),
+    path('applications/delete', views.DeleteApplication, name = 'application_delete'),
     path('applications/<int:pk>/put', views.PutApplication, name = 'application_put'),
 
     path('applications/<int:pk>/adminput', views.putApplicationByAdmin, name = 'application_by_admin'),

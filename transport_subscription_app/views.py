@@ -339,24 +339,42 @@ def getApplication(request, pk):
     except Application.DoesNotExist:
         return Response("Заявки с таким id нет")
 
+# @api_view(['DELETE']) # Делает проверку на пользователя и проверяет если ли у такого пользователя заявка с таким id=pk
+# @permission_classes([IsAuthenticated])
+# def DeleteApplication(request, pk):
+#     current_user = CurrentUserSingleton.get_instance()
+#     try: 
+#         application = Application.objects.filter(id=pk, id_user=current_user, status="Зарегистрирован").latest('creation_date')
+#         print(current_user.id)
+#         if not Application.objects.filter(pk=pk).exists():
+#             return Response(f"Заявки с таким id нет")
+#         application = Application.objects.get(pk=pk)
+#         application.status = "Удалено"
+#         application.save()
+
+#         application = Application.objects.all()
+#         serializer = ApplicationSerializer(application, many=True)
+#         return Response(serializer.data)
+#     except:
+#         print('У данного пользователя нет заявки')
+#         return Response("У данного пользователя нет заявки", status=400)
+
 @api_view(['DELETE']) # Делает проверку на пользователя и проверяет если ли у такого пользователя заявка с таким id=pk
 @permission_classes([IsAuthenticated])
-def DeleteApplication(request, pk):
-    current_user = CurrentUserSingleton.get_instance()
+def DeleteApplication(request):
+    ssid = request.COOKIES["session_id"]
+    try:
+        email = session_storage.get(ssid).decode('utf-8')
+        current_user = CustomUser.objects.get(email=email)
+    except:
+        return Response('Сессия не найдена')
+
     try: 
-        application = Application.objects.filter(id=pk, id_user=current_user, status="Зарегистрирован").latest('creation_date')
-        print(current_user.id)
-        if not Application.objects.filter(pk=pk).exists():
-            return Response(f"Заявки с таким id нет")
-        application = Application.objects.get(pk=pk)
+        application = Application.objects.get(id_user=current_user, status="Зарегистрирован")
         application.status = "Удалено"
         application.save()
-
-        application = Application.objects.all()
-        serializer = ApplicationSerializer(application, many=True)
-        return Response(serializer.data)
+        return Response({'status': 'Success'})
     except:
-        print('У данного пользователя нет заявки')
         return Response("У данного пользователя нет заявки", status=400)
     
 
