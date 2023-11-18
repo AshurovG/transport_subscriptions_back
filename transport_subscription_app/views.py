@@ -397,6 +397,33 @@ def DeleteApplicationSubscription(request, pk):
 
 # Authorization methods
 
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
+    model_class = CustomUser
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def create(self, request):
+        if self.model_class.objects.filter(email=request.data['email']).exists():
+            return Response({'status': 'Exist'}, status=400)
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            self.model_class.objects.create_user(email=serializer.data['email'],
+                                     password=serializer.data['password'],
+                                     full_name=serializer.data['full_name'],
+                                     phone_number=serializer.data['phone_number'],
+                                     is_superuser=serializer.data['is_superuser'],
+                                     is_staff=serializer.data['is_staff'])
+            random_key = str(uuid.uuid4())
+            session_storage.set(random_key, serializer.data['email'])
+            print(random_key, serializer.data['email'])
+            response = HttpResponse("{'status': 'ok'}")
+            response.set_cookie("session_id", random_key)
+            return response
+            # return Response({'status': 'Success'}, status=200)
+        return Response({'status': 'Error', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @authentication_classes([])
@@ -431,30 +458,23 @@ def logout_view(request):
         response_data = {'status': 'Error', 'message': 'Session does not exist'}
     return Response(response_data)
 
-
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = CustomUser.objects.all()
-    serializer_class = UserSerializer
-    model_class = CustomUser
-    authentication_classes = []
-    permission_classes = [AllowAny]
-
-    def create(self, request):
-        if self.model_class.objects.filter(email=request.data['email']).exists():
-            return Response({'status': 'Exist'}, status=400)
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            self.model_class.objects.create_user(email=serializer.data['email'],
-                                     password=serializer.data['password'],
-                                     full_name=serializer.data['full_name'],
-                                     phone_number=serializer.data['phone_number'],
-                                     is_superuser=serializer.data['is_superuser'],
-                                     is_staff=serializer.data['is_staff'])
-            random_key = str(uuid.uuid4())
-            session_storage.set(random_key, serializer.data['email'])
-            print(random_key, serializer.data['email'])
-            response = HttpResponse("{'status': 'ok'}")
-            response.set_cookie("session_id", random_key)
-            return response
-            # return Response({'status': 'Success'}, status=200)
-        return Response({'status': 'Error', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_info(request):
+    try:
+        ssid = request.COOKIES["session_id"]
+        if session_storage.exists(ssid):
+            email = session_storage.get(ssid).decode('utf-8')
+            user = CustomUser.objects.get(email=email)
+            user_data = {
+                "user_id": user.id,
+                "email": user.email,
+                "full_name": user.full_name,
+                "phone_number": user.phone_number,
+                "is_superuser": user.is_superuser
+            }
+            return Response(user_data, status=status.HTTP_200_OK)
+        else:
+            return Response({'status': 'Error', 'message': 'Session does not exist'})
+    except:
+        return Response({'status': 'Error', 'message': 'Cookies are not transmitted'})
