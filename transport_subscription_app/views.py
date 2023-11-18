@@ -377,6 +377,13 @@ def PutApplication(request, pk):
 @api_view(['PUT']) # Сделать зполнение столбца модератора в таблице заявок
 @permission_classes([IsManager])
 def putApplicationByAdmin(request, pk):
+    ssid = request.COOKIES["session_id"]
+    try:
+        email = session_storage.get(ssid).decode('utf-8')
+        current_user = CustomUser.objects.get(email=email)
+    except:
+        return Response('Сессия не найдена')
+
     if not Application.objects.filter(pk=pk).exists():
         return Response(f"Заявки с таким id нет")
     application = Application.objects.get(pk=pk)
@@ -385,7 +392,8 @@ def putApplicationByAdmin(request, pk):
     if request.data["status"] not in ["Отказано", "Принято"]:
         return Response("Неверный статус!")
     application.status = request.data["status"]
-    application.publication_date=datetime.now().date()
+    application.approving_date=datetime.now().date()
+    application.id_moderator = current_user
     application.save()
     serializer = ApplicationSerializer(application)
     return Response(serializer.data)
@@ -405,7 +413,7 @@ def putApplicationByUser(request):
         return Response("Такой заявки не зарегистрировано")
     
     application.status = "Проверяется"
-    application.processed_at=datetime.now().date()
+    application.publication_date=datetime.now().date()
     application.save()
     serializer = ApplicationSerializer(application)
     return Response(serializer.data)
