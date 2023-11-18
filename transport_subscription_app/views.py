@@ -339,26 +339,6 @@ def getApplication(request, pk):
     except Application.DoesNotExist:
         return Response("Заявки с таким id нет")
 
-# @api_view(['DELETE']) # Делает проверку на пользователя и проверяет если ли у такого пользователя заявка с таким id=pk
-# @permission_classes([IsAuthenticated])
-# def DeleteApplication(request, pk):
-#     current_user = CurrentUserSingleton.get_instance()
-#     try: 
-#         application = Application.objects.filter(id=pk, id_user=current_user, status="Зарегистрирован").latest('creation_date')
-#         print(current_user.id)
-#         if not Application.objects.filter(pk=pk).exists():
-#             return Response(f"Заявки с таким id нет")
-#         application = Application.objects.get(pk=pk)
-#         application.status = "Удалено"
-#         application.save()
-
-#         application = Application.objects.all()
-#         serializer = ApplicationSerializer(application, many=True)
-#         return Response(serializer.data)
-#     except:
-#         print('У данного пользователя нет заявки')
-#         return Response("У данного пользователя нет заявки", status=400)
-
 @api_view(['DELETE']) # Делает проверку на пользователя и проверяет если ли у такого пользователя заявка с таким id=pk
 @permission_classes([IsAuthenticated])
 def DeleteApplication(request):
@@ -394,7 +374,7 @@ def PutApplication(request, pk):
     serializer = ApplicationSerializer(order, many=True)
     return Response(serializer.data)
 
-@api_view(['PUT'])
+@api_view(['PUT']) # Сделать зполнение столбца модератора в таблице заявок
 @permission_classes([IsManager])
 def putApplicationByAdmin(request, pk):
     if not Application.objects.filter(pk=pk).exists():
@@ -413,7 +393,12 @@ def putApplicationByAdmin(request, pk):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def putApplicationByUser(request):
-    current_user = CurrentUserSingleton.get_instance()
+    ssid = request.COOKIES["session_id"]
+    try:
+        email = session_storage.get(ssid).decode('utf-8')
+        current_user = CustomUser.objects.get(email=email)
+    except:
+        return Response('Сессия не найдена')
     try:
         application = get_object_or_404(Application, id_user=current_user, status="Зарегистрирован")
     except:
@@ -428,7 +413,12 @@ def putApplicationByUser(request):
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def DeleteApplicationSubscription(request, pk):
-    current_user = CurrentUserSingleton.get_instance()
+    ssid = request.COOKIES["session_id"]
+    try:
+        email = session_storage.get(ssid).decode('utf-8')
+        current_user = CustomUser.objects.get(email=email)
+    except:
+        return Response('Сессия не найдена')
     application = get_object_or_404(Application, id_user=current_user, status="Зарегистрирован")
     try:
         subscription = Subscription.objects.get(pk=pk, status='enabled')
