@@ -407,14 +407,14 @@ def login_view(request):
     if user is not None:
         random_key = str(uuid.uuid4())
         session_storage.set(random_key, username)
-        user_data = {
-            "user_id": user.id,
-            "email": user.email,
-            "full_name": user.full_name,
-            "phone_number": user.phone_number
-        }
-        # response = HttpResponse("{'status': 'ok'}")
-        response = Response(user_data, status=status.HTTP_201_CREATED)
+        # user_data = {
+        #     "user_id": user.id,
+        #     "email": user.email,
+        #     "full_name": user.full_name,
+        #     "phone_number": user.phone_number
+        # }
+        response = HttpResponse("{'status': 'ok'}")
+        # response = Response(user_data, status=status.HTTP_201_CREATED)
         response.set_cookie("session_id", random_key)
         return response
     else:
@@ -433,9 +433,6 @@ def logout_view(request):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    """Класс, описывающий методы работы с пользователями
-    Осуществляет связь с таблицей пользователей в базе данных
-    """
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
     model_class = CustomUser
@@ -443,20 +440,21 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request):
-        """
-        Функция регистрации новых пользователей
-        Если пользователя c указанным в request email ещё нет, в БД будет добавлен новый пользователь.
-        """
         if self.model_class.objects.filter(email=request.data['email']).exists():
             return Response({'status': 'Exist'}, status=400)
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            print(serializer.data)
             self.model_class.objects.create_user(email=serializer.data['email'],
                                      password=serializer.data['password'],
                                      full_name=serializer.data['full_name'],
                                      phone_number=serializer.data['phone_number'],
                                      is_superuser=serializer.data['is_superuser'],
                                      is_staff=serializer.data['is_staff'])
-            return Response({'status': 'Success'}, status=200)
+            random_key = str(uuid.uuid4())
+            session_storage.set(random_key, serializer.data['email'])
+            print(random_key, serializer.data['email'])
+            response = HttpResponse("{'status': 'ok'}")
+            response.set_cookie("session_id", random_key)
+            return response
+            # return Response({'status': 'Success'}, status=200)
         return Response({'status': 'Error', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
