@@ -393,50 +393,38 @@ def DeleteApplicationSubscription(request, pk):
             return Response("Заявка не найдена", status=404)
     except Subscription.DoesNotExist:
         return Response("Такой услуги нет", status=400)
-    
 
-#Auth
-# @permission_classes([AllowAny])
-# @authentication_classes([])
-# @csrf_exempt
-# @swagger_auto_schema(method='post', request_body=UserSerializer)
-# @api_view(['Post'])
-# def login_view(request):
-#     email = request.POST["email"] # допустим передали username и password
-#     password = request.POST["password"]
-#     user = authenticate(request, email=email, password=password)
-#     if user is not None:
-#         login(request, user)
-#         return HttpResponse("{'status': 'ok'}")
-#     else:
-#         return HttpResponse("{'status': 'error', 'error': 'login failed'}")
+
+# Authorization methods
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @authentication_classes([])
-def auth_view(request):
-    print('auth !!!')
+def login_view(request):
     username = request.POST["email"] 
     password = request.POST["password"]
     user = authenticate(request, email=username, password=password)
     if user is not None:
         random_key = str(uuid.uuid4())
         session_storage.set(random_key, username)
-        print(random_key, username)
-        response = HttpResponse("{'status': 'ok'}")
+        user_data = {
+            "user_id": user.id,
+            "email": user.email,
+            "full_name": user.full_name,
+            "phone_number": user.phone_number
+        }
+        # response = HttpResponse("{'status': 'ok'}")
+        response = Response(user_data, status=status.HTTP_201_CREATED)
         response.set_cookie("session_id", random_key)
         return response
     else:
         return HttpResponse("{'status': 'error', 'error': 'login failed'}")
 
-# logout(request._request)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def logout_view(request):
-    print('logout')
     ssid = request.COOKIES["session_id"]
     if session_storage.exists(ssid):
-        print('Такой ssid есть: ', ssid)
         session_storage.delete(ssid)
         response_data = {'status': 'Success'}
     else:
