@@ -324,14 +324,18 @@ def getApplication(request, pk):
         if application.status == "Удалено" or not application:
             return Response("Заявки с таким id нет")
         application_serializer = ApplicationSerializer(application)
-        print(application_serializer.data['id_user'])
         if (not current_user.is_superuser and current_user.id == application_serializer.data['id_user']) or (current_user.is_superuser):
             application_subscriptions = ApplicationSubscription.objects.filter(id_application=application)
             application_subscriptions_serializer = ApplicationSubscriptionSerializer(application_subscriptions, many=True)
             # print(application_subscriptions)
+            subscription_ids = [subscription.id_subscription_id for subscription in application_subscriptions]
+            print(subscription_ids)
+            subscriptions_queryset = Subscription.objects.filter(id__in=subscription_ids)
+            subscriptions_serializer = SubscriptionSerializer(subscriptions_queryset, many=True)
+            # print(len(subscriptions_queryset))
             response_data = {
                 'application': application_serializer.data,
-                'subscriptions': application_subscriptions_serializer.data
+                'subscriptions': subscriptions_serializer.data
             }
             return Response(response_data)
         else: 
@@ -479,14 +483,7 @@ def login_view(request):
     if user is not None:
         random_key = str(uuid.uuid4())
         session_storage.set(random_key, username)
-        # user_data = {
-        #     "user_id": user.id,
-        #     "email": user.email,
-        #     "full_name": user.full_name,
-        #     "phone_number": user.phone_number
-        # }
         response = HttpResponse("{'status': 'ok'}")
-        # response = Response(user_data, status=status.HTTP_201_CREATED)
         response.set_cookie("session_id", random_key)
         return response
     else:
