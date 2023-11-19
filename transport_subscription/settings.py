@@ -82,6 +82,12 @@ REST_FRAMEWORK = {
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = [
+    "Authorization",
+    "Content-Type",
+]
 
 ROOT_URLCONF = 'transport_subscription.urls'
 

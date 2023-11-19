@@ -42,8 +42,7 @@ urlpatterns = [
     path('subscriptions/<int:pk>/post', views.PostSubscriptionToApplication, name = 'add_subscription_to_application'),
     
     path('applications', views.getApplications, name = 'applications-list'), 
-    path('applications/<int:pk>', views.getApplication, name = 'application'), # Поменять название метода !!!
-   #  path('applications/<int:pk>/delete', views.DeleteApplication, name = 'application_delete'),
+    path('applications/<int:pk>', views.getApplication, name = 'application'),
     path('applications/delete', views.DeleteApplication, name = 'application_delete'),
     path('applications/<int:pk>/put', views.PutApplication, name = 'application_put'),
 

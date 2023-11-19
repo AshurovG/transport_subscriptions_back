@@ -118,8 +118,8 @@ def getSubscriptions(request):
     if max_price:
         subscriptions = subscriptions.filter(price__lte=max_price)
     
-    ssid = request.COOKIES["session_id"]
     try:
+        ssid = request.COOKIES["session_id"]
         email = session_storage.get(ssid).decode('utf-8')
         current_user = CustomUser.objects.get(email=email)
         application = Application.objects.filter(id_user=current_user, status="Зарегистрирован").latest('creation_date')
@@ -326,13 +326,10 @@ def getApplication(request, pk):
         application_serializer = ApplicationSerializer(application)
         if (not current_user.is_superuser and current_user.id == application_serializer.data['id_user']) or (current_user.is_superuser):
             application_subscriptions = ApplicationSubscription.objects.filter(id_application=application)
-            application_subscriptions_serializer = ApplicationSubscriptionSerializer(application_subscriptions, many=True)
-            # print(application_subscriptions)
             subscription_ids = [subscription.id_subscription_id for subscription in application_subscriptions]
             print(subscription_ids)
             subscriptions_queryset = Subscription.objects.filter(id__in=subscription_ids)
             subscriptions_serializer = SubscriptionSerializer(subscriptions_queryset, many=True)
-            # print(len(subscriptions_queryset))
             response_data = {
                 'application': application_serializer.data,
                 'subscriptions': subscriptions_serializer.data
