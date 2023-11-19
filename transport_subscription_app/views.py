@@ -107,6 +107,7 @@ def deleteСategory(request, pk):
 def getSubscriptions(request):
     category = request.query_params.get("category")
     title = request.query_params.get("title")
+    min_price = request.query_params.get("min_price")
     max_price = request.query_params.get("max_price")
 
     subscriptions = Subscription.objects.filter(status="enabled")
@@ -115,7 +116,11 @@ def getSubscriptions(request):
         subscriptions = subscriptions.filter(id_category__title__icontains=category)
     if title:
         subscriptions = subscriptions.filter(title__icontains=title)
-    if max_price:
+    if min_price and max_price:
+        subscriptions = subscriptions.filter(price__range=(min_price, max_price))
+    elif min_price:
+        subscriptions = subscriptions.filter(price__gte=min_price)
+    elif max_price:
         subscriptions = subscriptions.filter(price__lte=max_price)
     
     try:
