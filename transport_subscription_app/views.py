@@ -469,8 +469,17 @@ class UserViewSet(viewsets.ModelViewSet):
                                      is_staff=serializer.data['is_staff'])
             random_key = str(uuid.uuid4())
             session_storage.set(random_key, serializer.data['email'])
-            print(random_key, serializer.data['email'])
-            response = HttpResponse("{'status': 'ok'}")
+            user_data = {
+                "email": request.data['email'],
+                "full_name": request.data['full_name'],
+                "phone_number": request.data['phone_number'],
+                "password": request.data['password'],
+                "is_superuser": False
+            }
+
+            print('user data is ', user_data)
+            response = Response(user_data, status=status.HTTP_201_CREATED)
+            # response = HttpResponse("{'status': 'ok'}")
             response.set_cookie("session_id", random_key)
             return response
             # return Response({'status': 'Success'}, status=200)
@@ -497,7 +506,7 @@ def login_view(request):
             "is_superuser": user.is_superuser,
         }
         response = Response(user_data, status=status.HTTP_201_CREATED)
-        response.set_cookie("session_id", random_key)
+        response.set_cookie("session_id", random_key, samesite="Lax")
         return response
     else:
         return HttpResponse("login failed", status=400)
@@ -514,10 +523,12 @@ def logout_view(request):
     return Response(response_data)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def user_info(request):
+    print(request.headers.get('Authorization'))
     try:
-        ssid = request.COOKIES["session_id"]
+        # ssid = request.COOKIES("session_id")
+        ssid = request.headers.get('Authorization')
         if session_storage.exists(ssid):
             email = session_storage.get(ssid).decode('utf-8')
             user = CustomUser.objects.get(email=email)
