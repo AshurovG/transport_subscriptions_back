@@ -8,7 +8,7 @@ from transport_subscription_app.serializers import *
 from transport_subscription_app.models import *
 from datetime import datetime
 from minio import Minio
-from rest_framework.decorators import api_view, parser_classes, permission_classes, authentication_classes, permission_classes, action
+from rest_framework.decorators import api_view, parser_classes, authentication_classes, permission_classes, action
 from django.http import HttpResponseServerError
 import os
 from rest_framework.parsers import MultiPartParser
@@ -18,7 +18,7 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import ModelViewSet
 from django.views.decorators.csrf import csrf_exempt
 from drf_yasg import openapi
@@ -211,7 +211,7 @@ def postImageToSubscription(request, pk):
     return HttpResponseBadRequest('Invalid request.')
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuth])
 def PostSubscriptionToApplication(request, pk):
     ssid = request.COOKIES["session_id"]
     try:
@@ -278,7 +278,7 @@ from django.db.models import Q
 
 # @permission_classes([IsManager])
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuth])
 def getApplications(request):
     ssid = request.COOKIES["session_id"]
     try:
@@ -315,7 +315,7 @@ def getApplications(request):
     return Response(serializer.data)
 
 @api_view(['GET']) # Желательно сделать чтобы выводились поля услуг а не м-м
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuth])
 def getApplication(request, pk):
     ssid = request.COOKIES["session_id"]
     try:
@@ -346,7 +346,7 @@ def getApplication(request, pk):
         return Response("Заявки с таким id нет")
 
 @api_view(['DELETE']) # Делает проверку на пользователя и проверяет если ли у такого пользователя заявка с таким id=pk
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuth])
 def DeleteApplication(request):
     ssid = request.COOKIES["session_id"]
     try:
@@ -405,7 +405,7 @@ def putApplicationByAdmin(request, pk):
     return Response(serializer.data)
 
 @api_view(['PUT'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuth])
 def putApplicationByUser(request):
     ssid = request.COOKIES["session_id"]
     try:
@@ -425,7 +425,7 @@ def putApplicationByUser(request):
     return Response(serializer.data)
     
 @api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuth])
 def DeleteApplicationSubscription(request, pk):
     ssid = request.COOKIES["session_id"]
     try:
@@ -473,7 +473,6 @@ class UserViewSet(viewsets.ModelViewSet):
                 "email": request.data['email'],
                 "full_name": request.data['full_name'],
                 "phone_number": request.data['phone_number'],
-                "password": request.data['password'],
                 "is_superuser": False
             }
 
@@ -485,7 +484,7 @@ class UserViewSet(viewsets.ModelViewSet):
             # return Response({'status': 'Success'}, status=200)
         return Response({'status': 'Error', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-@swagger_auto_schema(method='post', request_body=UserSerializer)
+# @swagger_auto_schema(method='post', request_body=UserSerializer)
 @api_view(['Post'])
 @permission_classes([AllowAny])
 def login_view(request):
@@ -512,9 +511,12 @@ def login_view(request):
         return HttpResponse("login failed", status=400)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuth])
 def logout_view(request):
-    ssid = request.COOKIES["session_id"]
+    print(request.headers.get('Authorization'))
+    # ssid = request.COOKIES["session_id"]
+    ssid = request.headers.get('Authorization')
+    print('ssid logout is', ssid)
     if session_storage.exists(ssid):
         session_storage.delete(ssid)
         response_data = {'status': 'Success'}
@@ -523,12 +525,13 @@ def logout_view(request):
     return Response(response_data)
 
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuth])
 def user_info(request):
     print(request.headers.get('Authorization'))
     try:
         # ssid = request.COOKIES("session_id")
         ssid = request.headers.get('Authorization')
+        print('ssid', ssid)
         if session_storage.exists(ssid):
             email = session_storage.get(ssid).decode('utf-8')
             user = CustomUser.objects.get(email=email)
