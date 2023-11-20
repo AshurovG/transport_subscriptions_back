@@ -456,6 +456,7 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request):
+        print('req is', request.data)
         if self.model_class.objects.filter(email=request.data['email']).exists():
             return Response({'status': 'Exist'}, status=400)
         serializer = self.serializer_class(data=request.data)
@@ -475,12 +476,14 @@ class UserViewSet(viewsets.ModelViewSet):
             # return Response({'status': 'Success'}, status=200)
         return Response({'status': 'Error', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST'])
+@swagger_auto_schema(method='post', request_body=UserSerializer)
+@api_view(['Post'])
 @permission_classes([AllowAny])
-@authentication_classes([])
 def login_view(request):
-    username = request.POST["email"] 
-    password = request.POST["password"]
+    # username = request.POST["email"] 
+    # password = request.POST["password"]
+    username = request.data.get('email')
+    password = request.data.get('password')
     user = authenticate(request, email=username, password=password)
     if user is not None:
         random_key = str(uuid.uuid4())
@@ -490,6 +493,31 @@ def login_view(request):
         return response
     else:
         return HttpResponse("{'status': 'error', 'error': 'login failed'}")
+
+# @swagger_auto_schema(method='post', request_body=UserSerializer)
+# @api_view(['Post'])
+# @permission_classes([AllowAny])
+# def login_view(request):
+#     username = request.data.get('email')
+#     password = request.data.get('password')
+#     user = authenticate(request, email=username, password=password)
+    
+#     if user is not None:
+#         random_key = str(uuid.uuid4())
+#         user_data = {
+#             "user_id": user.id,
+#             "email": user.email,
+#             "is_moderator": user.is_moderator,
+#             "session_id": random_key
+#         }
+#         session_storage.set(random_key, username)
+#         response = Response(user_data, status=status.HTTP_201_CREATED)
+#         response.set_cookie("session_id", random_key)
+
+#         return response
+#     else:
+#         return Response({'status': 'Error'}, status=status.HTTP_400_BAD_REQUEST)
+    
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
