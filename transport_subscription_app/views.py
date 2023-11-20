@@ -480,44 +480,27 @@ class UserViewSet(viewsets.ModelViewSet):
 @api_view(['Post'])
 @permission_classes([AllowAny])
 def login_view(request):
-    # username = request.POST["email"] 
-    # password = request.POST["password"]
     username = request.data.get('email')
     password = request.data.get('password')
     user = authenticate(request, email=username, password=password)
+    
     if user is not None:
+        print(user)
         random_key = str(uuid.uuid4())
         session_storage.set(random_key, username)
-        response = HttpResponse("{'status': 'ok'}")
+        user_data = {
+            "id": user.id,
+            "email": user.email,
+            "full_name": user.full_name,
+            "phone_number": user.phone_number,
+            "password": user.password,
+            "is_superuser": user.is_superuser,
+        }
+        response = Response(user_data, status=status.HTTP_201_CREATED)
         response.set_cookie("session_id", random_key)
         return response
     else:
-        return HttpResponse("{'status': 'error', 'error': 'login failed'}")
-
-# @swagger_auto_schema(method='post', request_body=UserSerializer)
-# @api_view(['Post'])
-# @permission_classes([AllowAny])
-# def login_view(request):
-#     username = request.data.get('email')
-#     password = request.data.get('password')
-#     user = authenticate(request, email=username, password=password)
-    
-#     if user is not None:
-#         random_key = str(uuid.uuid4())
-#         user_data = {
-#             "user_id": user.id,
-#             "email": user.email,
-#             "is_moderator": user.is_moderator,
-#             "session_id": random_key
-#         }
-#         session_storage.set(random_key, username)
-#         response = Response(user_data, status=status.HTTP_201_CREATED)
-#         response.set_cookie("session_id", random_key)
-
-#         return response
-#     else:
-#         return Response({'status': 'Error'}, status=status.HTTP_400_BAD_REQUEST)
-    
+        return HttpResponse("login failed", status=400)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
