@@ -122,10 +122,11 @@ def getSubscriptions(request):
         subscriptions = subscriptions.filter(price__gte=min_price)
     elif max_price:
         subscriptions = subscriptions.filter(price__lte=max_price)
-    
+    print('before try')
     try:
         ssid = request.COOKIES["session_id"]
         email = session_storage.get(ssid).decode('utf-8')
+        print('email', email)
         current_user = CustomUser.objects.get(email=email)
         application = Application.objects.filter(id_user=current_user, status="Зарегистрирован").latest('creation_date')
         serializer = SubscriptionSerializer(subscriptions, many=True)
@@ -137,7 +138,9 @@ def getSubscriptions(request):
         return Response(result)
     except:
         serializer = SubscriptionSerializer(subscriptions, many=True)
-        result = serializer.data
+        result = {
+            'subscriptions': serializer.data
+        }
         return Response(result)
 
 @api_view(['Get'])
@@ -242,8 +245,8 @@ def PostSubscriptionToApplication(request, pk):
             id_subscription=subscription,
         )
         application_subscription.save()
-    application_subscription = ApplicationSubscription.objects.filter(id_application = id_application)
-    serializer = ApplicationSubscriptionSerializer(application_subscription, many=True)
+    addedSubscription = Subscription.objects.get(pk = pk)
+    serializer = SubscriptionSerializer(addedSubscription)
     return Response(serializer.data)
 
 @api_view(['PUT'])
