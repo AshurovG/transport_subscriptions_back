@@ -513,10 +513,7 @@ def login_view(request):
 @api_view(['POST'])
 @permission_classes([IsAuth])
 def logout_view(request):
-    print(request.headers.get('Authorization'))
-    # ssid = request.COOKIES["session_id"]
-    ssid = request.headers.get('Authorization')
-    print('ssid logout is', ssid)
+    ssid = request.COOKIES["session_id"]
     if session_storage.exists(ssid):
         session_storage.delete(ssid)
         response_data = {'status': 'Success'}
@@ -525,13 +522,10 @@ def logout_view(request):
     return Response(response_data)
 
 @api_view(['GET'])
-@permission_classes([IsAuth])
+# @permission_classes([IsAuth])
 def user_info(request):
-    print(request.headers.get('Authorization'))
     try:
-        # ssid = request.COOKIES("session_id")
-        ssid = request.headers.get('Authorization')
-        print('ssid', ssid)
+        ssid = request.COOKIES["session_id"]
         if session_storage.exists(ssid):
             email = session_storage.get(ssid).decode('utf-8')
             user = CustomUser.objects.get(email=email)

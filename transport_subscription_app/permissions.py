@@ -6,7 +6,8 @@ session_storage = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDI
 
 class IsManager(permissions.BasePermission): 
     def has_permission(self, request, view): 
-        access_token = request.headers.get('Authorization') 
+        # access_token = request.headers.get('Authorization') 
+        access_token = request.COOKIES["session_id"]
  
         if access_token is None: 
             return False 
@@ -20,9 +21,9 @@ class IsManager(permissions.BasePermission):
      
 class IsAuth(permissions.BasePermission): 
     def has_permission(self, request, view): 
-        access_token = request.headers.get('Authorization') 
+        # access_token = request.headers.get('Authorization') 
+        access_token = request.COOKIES["session_id"]
         print('cheeeeck', access_token)
-        # access_token = authorization_header.split(' ')[1] if authorization_header else None 
  
         if access_token is None: 
             return False 
