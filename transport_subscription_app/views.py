@@ -126,7 +126,6 @@ def getSubscriptions(request):
     try:
         ssid = request.COOKIES["session_id"]
         email = session_storage.get(ssid).decode('utf-8')
-        print('email', email)
         current_user = CustomUser.objects.get(email=email)
         application = Application.objects.filter(id_user=current_user, status="Зарегистрирован").latest('creation_date')
         serializer = SubscriptionSerializer(subscriptions, many=True)
