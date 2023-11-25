@@ -47,7 +47,7 @@ urlpatterns = [
     path('applications/<int:pk>/put', views.PutApplication, name = 'application_put'),
 
     path('applications/<int:pk>/adminput', views.putApplicationByAdmin, name = 'application_by_admin'),
-    path('applications/userput', views.putApplicationByUser, name = 'application_by_user'),
+    path('applications/send', views.send_application, name = 'application_send'),
 
     path('application_subscription/<int:pk>/delete', views.DeleteApplicationSubscription, name = 'application_subscription_delete'),
 

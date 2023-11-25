@@ -237,7 +237,7 @@ def PostSubscriptionToApplication(request, pk):
         return Response("Такой услуги нет", status=400)
     try:
         application_subscription = ApplicationSubscription.objects.get(id_application=id_application, id_subscription=subscription)
-        return Response("Такой абонемент уже добавлен в заявку")
+        return Response("Такой абонемент уже добавлен в заявку", status=400)
     except ApplicationSubscription.DoesNotExist:
         application_subscription = ApplicationSubscription(
             id_application=id_application,
@@ -408,7 +408,7 @@ def putApplicationByAdmin(request, pk):
 
 @api_view(['PUT'])
 @permission_classes([IsAuth])
-def putApplicationByUser(request):
+def send_application(request):
     ssid = request.COOKIES["session_id"]
     try:
         email = session_storage.get(ssid).decode('utf-8')
