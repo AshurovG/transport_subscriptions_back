@@ -297,6 +297,7 @@ def getApplications(request):
     status = request.data.get('status')
 
     if current_user.is_superuser: # Модератор может смотреть заявки всех пользователей
+        print('модератор')
         applications = Application.objects.filter(
             ~Q(status="Удалено"),
             creation_date__range=(start, end)
@@ -438,9 +439,14 @@ def DeleteApplicationSubscription(request, pk):
     application = get_object_or_404(Application, id_user=current_user, status="Зарегистрирован")
     try:
         subscription = Subscription.objects.get(pk=pk, status='enabled')
+        subscriptionsFromApplication = ApplicationSubscription.objects.filter(id_application = application)
         try:
             application_subscription = get_object_or_404(ApplicationSubscription, id_application=application, id_subscription=subscription)
             application_subscription.delete()
+            if (len(subscriptionsFromApplication) == 0):
+                application = get_object_or_404(Application, id_user=current_user, status="Зарегистрирован")
+                application.status = 'Удалено'
+                application.save()
             return Response("Абонемент удален", status=200)
         except ApplicationSubscription.DoesNotExist:
             return Response("Заявка не найдена", status=404)
@@ -486,7 +492,7 @@ class UserViewSet(viewsets.ModelViewSet):
             # return Response({'status': 'Success'}, status=200)
         return Response({'status': 'Error', 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-# @swagger_auto_schema(method='post', request_body=UserSerializer)
+@swagger_auto_schema(method='post', request_body=UserSerializer)
 @api_view(['Post'])
 @permission_classes([AllowAny])
 def login_view(request):
@@ -507,7 +513,7 @@ def login_view(request):
             "is_superuser": user.is_superuser,
         }
         response = Response(user_data, status=status.HTTP_201_CREATED)
-        response.set_cookie("session_id", random_key, samesite="Lax")
+        response.set_cookie("session_id", random_key, samesite="Lax", max_age=30 * 24 * 60 * 60)
         return response
     else:
         return HttpResponse("login failed", status=400)
