@@ -4,6 +4,7 @@ from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework import viewsets
+from django.http import HttpResponseForbidden
 from transport_subscription_app.serializers import *
 from transport_subscription_app.models import *
 from datetime import datetime
@@ -159,23 +160,7 @@ def postSubscription(request):
     
     serializer = SubscriptionSerializer(data=data)
     if serializer.is_valid():
-        new_option = serializer.save()
-        client = Minio(endpoint="localhost:9000",
-               access_key='minioadmin',
-               secret_key='minioadmin',
-               secure=False)
-        i=new_option.id-1
-        try:
-            i = new_option.id
-            img_obj_name = f"{i}.jpg"
-            file_path = f"assets/{request.data.get('src')}"  
-            client.fput_object(bucket_name='images',
-                            object_name=img_obj_name)
-                            # file_path=file_path)
-            new_option.src = f"localhost:9000/images/{img_obj_name}"
-            new_option.save()
-        except Exception as e:
-            return Response({"error": str(e)})
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -203,7 +188,7 @@ def postImageToSubscription(request, pk):
             serializer = SubscriptionSerializer(instance=subscription, data={'src': file_path}, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                return HttpResponse('Image uploaded successfully.')
+                return HttpResponse(file_path)
             else:
                 return HttpResponseBadRequest('Invalid data.')
         except Exception as e:
@@ -254,6 +239,7 @@ def putSubscription(request, pk):
     if not Subscription.objects.filter(pk=pk).exists():
         return Response(f"Абонемента с таким id нет")
     subscription = get_object_or_404(Subscription, pk=pk)
+    print(subscription.price)
     serializer = SubscriptionSerializer(subscription, data=request.data)
     if serializer.is_valid():
         serializer.save()
@@ -280,42 +266,51 @@ from django.db.models import Q
 
 # @permission_classes([IsManager])
 @api_view(['GET'])
-@permission_classes([IsAuth])
+# @permission_classes([IsAuth])
 def getApplications(request):
-    ssid = request.COOKIES["session_id"]
-    try:
-        email = session_storage.get(ssid).decode('utf-8')
-        current_user = CustomUser.objects.get(email=email)
-    except:
-        return Response('Сессия не найдена')
-    date_format = "%Y-%m-%d"
-    start_date_str = request.query_params.get('start', '2023-01-01')
-    end_date_str = request.query_params.get('end', '2023-12-31')
-    start = datetime.strptime(start_date_str, date_format).date()
-    end = datetime.strptime(end_date_str, date_format).date()
-    
-    status = request.data.get('status')
+   try:
+       if "session_id" in request.COOKIES:
+          ssid = request.COOKIES["session_id"]
+       else: 
+          return HttpResponseForbidden('Сессия не найдена')
+       
+       email = session_storage.get(ssid).decode('utf-8')
+       current_user = CustomUser.objects.get(email=email)
+       date_format = "%Y-%m-%d"
+       start_date_str = request.query_params.get('start', '2022-01-01')
+       end_date_str = request.query_params.get('end', '2024-12-31')
+       start = datetime.strptime(start_date_str, date_format).date()
+       end = datetime.strptime(end_date_str, date_format).date()
+       
+       status = request.query_params.get('status')
+       email_filter = request.query_params.get('email', None)
 
-    if current_user.is_superuser: # Модератор может смотреть заявки всех пользователей
-        print('модератор')
-        applications = Application.objects.filter(
-            ~Q(status="Удалено"),
-            creation_date__range=(start, end)
-        )
-    else: # Авторизованный пользователь может смотреть только свои заявки
-        applications = Application.objects.filter(
-            ~Q(status="Удалено"),
-            id_user=current_user.id,
-            creation_date__range=(start, end)
-        )
-    
-    if status:
-        applications = applications.filter(status=status)
+       if current_user.is_superuser: # Модератор может смотреть заявки всех пользователей
+           print('модератор')
+           applications = Application.objects.filter(
+               ~Q(status="Удалено"),
+               publication_date__range=(start, end)
+           )
+       else: # Авторизованный пользователь может смотреть только свои заявки
+           applications = Application.objects.filter(
+               ~Q(status="Удалено"),
+               id_user=current_user.id,
+               publication_date__range=(start, end)
+           )
+       
+       if email_filter:
+           
+           applications = applications.filter(Q(user__icontains=email_filter))
 
-    applications = applications.order_by('creation_date')
-    serializer = ApplicationSerializer(applications, many=True)
-    
-    return Response(serializer.data)
+       if status:
+           applications = applications.filter(status=status)
+
+       applications = applications.order_by('publication_date')
+       serializer = ApplicationSerializer(applications, many=True)
+       
+       return Response(serializer.data)
+   except:
+       return HttpResponseForbidden('Сессия не найдена')
 
 @api_view(['GET']) # Желательно сделать чтобы выводились поля услуг а не м-м
 @permission_classes([IsAuth])
@@ -402,6 +397,8 @@ def putApplicationByAdmin(request, pk):
         return Response("Неверный статус!")
     application.status = request.data["status"]
     application.approving_date=datetime.now().date()
+    if request.data["status"] != "Отказано":
+        application.active_date=datetime.now().date()
     application.id_moderator = current_user
     application.save()
     serializer = ApplicationSerializer(application)

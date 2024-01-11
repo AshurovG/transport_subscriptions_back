@@ -41,12 +41,13 @@ class Application(models.Model):
     creation_date = models.DateField(blank=True, null=True)
     approving_date = models.DateField(blank=True, null=True)
     publication_date = models.DateField(blank=True, null=True)
+    active_date = models.DateField(blank=True, null=True)
     id_moderator = models.ForeignKey('CustomUser', on_delete=models.CASCADE,  db_column='id_moderator', related_name='moderator_application', blank=True, null=True)
-    id_user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, db_column='id_user', related_name='user_application')
+    id_user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, db_column='id_user', related_name='user_application', null=True)
 
     class Meta:
         db_table = 'application'
-        managed = False
+        managed = True
 
 class ApplicationSubscription(models.Model):
     id_application = models.ForeignKey('Application', models.DO_NOTHING, db_column='id_application')
@@ -79,6 +80,7 @@ class Subscription(models.Model):
     price = models.IntegerField(default=0)
     info = models.TextField(default='')
     src = models.TextField(default='')
+    # active_date = models.DateField(blank=True, null=True)
     id_category = models.ForeignKey('Category', models.DO_NOTHING, db_column='id_category', blank=True, null=True, related_name='subscription')
     STATUS_CHOICES = [
         ('enabled', 'enabled'),
