@@ -51,8 +51,8 @@ class ApplicationSubscription(models.Model):
 
     class Meta:
         db_table = 'application_subscription'
-        constraints = [
-            models.UniqueConstraint(fields=['id_application', 'id_subscription'], name='composite_key')
+        constraints = [ # РЕАЛИЗАЦИЯ СОСТАВНОГО КЛЮЧА
+            models.UniqueConstraint(fields=['id_application', 'id_subscription'], name='composite_key') 
         ]
 
 
